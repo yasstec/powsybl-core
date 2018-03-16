@@ -10,10 +10,10 @@ import com.powsybl.computation.CommandExecution;
 import com.powsybl.computation.ExecutionError;
 import com.powsybl.computation.ExecutionListener;
 import com.powsybl.computation.ExecutionReport;
+import io.reactivex.SingleEmitter;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  *
@@ -27,7 +27,7 @@ public class MpiJob {
 
     private final ExecutionListener listener;
 
-    private final CompletableFuture<ExecutionReport> future;
+    private final SingleEmitter<ExecutionReport> emitter;
 
     private final Path workingDir;
 
@@ -41,13 +41,13 @@ public class MpiJob {
 
     private final Set<Integer> usedRanks = new HashSet<>();
 
-    MpiJob(int id, CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener, CompletableFuture<ExecutionReport> future) {
+    MpiJob(int id, CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener, SingleEmitter<ExecutionReport> emitter) {
         this.id = id;
         this.execution = execution;
         this.workingDir = workingDir;
         this.variables = variables;
         this.listener = new ProfiledExecutionListener(listener);
-        this.future = future;
+        this.emitter = emitter;
     }
 
     CommandExecution getExecution() {
@@ -74,8 +74,8 @@ public class MpiJob {
         return listener;
     }
 
-    CompletableFuture<ExecutionReport> getFuture() {
-        return future;
+    public SingleEmitter<ExecutionReport> getEmitter() {
+        return emitter;
     }
 
     int getTaskIndex() {

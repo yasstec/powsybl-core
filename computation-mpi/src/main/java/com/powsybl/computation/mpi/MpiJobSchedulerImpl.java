@@ -12,6 +12,7 @@ import com.google.protobuf.ByteString;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.computation.*;
 import com.powsybl.computation.mpi.generated.Messages;
+import io.reactivex.Single;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -27,7 +28,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -217,7 +221,7 @@ class MpiJobSchedulerImpl implements MpiJobScheduler {
                                     } catch (Exception e) {
                                         LOGGER.error(e.toString(), e);
                                     }
-                                    job.getFuture().complete(report);
+                                    job.getEmitter().onSuccess(report);
 
                                     MpiJobSchedulerImpl.this.statistics.logJobEnd(job.getId());
                                 }
@@ -609,19 +613,19 @@ class MpiJobSchedulerImpl implements MpiJobScheduler {
     }
 
     @Override
-    public CompletableFuture<ExecutionReport> execute(CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener) {
-        CompletableFuture<ExecutionReport> future = new CompletableFuture<>();
-        newJobsLock.lock();
-        try {
-            MpiJob job = new MpiJob(jobId++, execution, workingDir, variables, listener, future);
-            newJobs.add(job);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Job {} scheduled ({} tasks)", job.getId(), job.getExecution().getExecutionCount());
+    public Single<ExecutionReport> execute(CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener) {
+        return Single.create(emitter -> {
+            newJobsLock.lock();
+            try {
+                MpiJob job = new MpiJob(jobId++, execution, workingDir, variables, listener, emitter);
+                newJobs.add(job);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Job {} scheduled ({} tasks)", job.getId(), job.getExecution().getExecutionCount());
+                }
+            } finally {
+                newJobsLock.unlock();
             }
-        } finally {
-            newJobsLock.unlock();
-        }
-        return future;
+        });
     }
 
     @Override

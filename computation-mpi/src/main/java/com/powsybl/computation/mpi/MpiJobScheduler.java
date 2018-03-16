@@ -9,10 +9,10 @@ package com.powsybl.computation.mpi;
 import com.powsybl.computation.CommandExecution;
 import com.powsybl.computation.ExecutionListener;
 import com.powsybl.computation.ExecutionReport;
+import io.reactivex.Single;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -27,7 +27,7 @@ public interface MpiJobScheduler {
 
     void sendCommonFile(CommonFile commonFile);
 
-    CompletableFuture<ExecutionReport> execute(CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener);
+    Single<ExecutionReport> execute(CommandExecution execution, Path workingDir, Map<String, String> variables, ExecutionListener listener);
 
     void shutdown() throws Exception;
 

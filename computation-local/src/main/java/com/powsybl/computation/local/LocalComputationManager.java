@@ -11,6 +11,8 @@ import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.config.PlatformConfig;
 import com.powsybl.commons.io.WorkingDirectory;
 import com.powsybl.computation.*;
+import io.reactivex.Maybe;
+import io.reactivex.schedulers.Schedulers;
 import net.java.truevfs.comp.zip.ZipEntry;
 import net.java.truevfs.comp.zip.ZipFile;
 import org.apache.commons.lang3.SystemUtils;
@@ -319,49 +321,34 @@ public class LocalComputationManager implements ComputationManager {
     }
 
     @Override
+    public <R> Maybe<R> execute2(ExecutionEnvironment environment, ExecutionHandler<R> handler) {
+        return Maybe.<R>create(emitter -> {
+            try (WorkingDirectory workingDir = new WorkingDirectory(config.getLocalDir(), environment.getWorkingDirPrefix(), environment.isDebug())) {
+                List<CommandExecution> commandExecutionList = handler.before(workingDir.toPath());
+                ExecutionReport report = null;
+                enter();
+                try {
+                    report = execute(workingDir.toPath(), commandExecutionList, environment.getVariables(), handler::onProgress);
+                } finally {
+                    exit();
+                }
+                R result = handler.after(workingDir.toPath(), report);
+                if (result != null) {
+                    emitter.onSuccess(result);
+                } else {
+                    emitter.onComplete();
+                }
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        }).subscribeOn(Schedulers.from(threadPools));
+    }
+
+    @Override
     public <R> CompletableFuture<R> execute(ExecutionEnvironment environment, ExecutionHandler<R> handler) {
         Objects.requireNonNull(environment);
         Objects.requireNonNull(handler);
-        MyCf<R> f = new MyCf<>();
-        threadPools.execute(() -> {
-            f.setThread(Thread.currentThread());
-            try {
-                try (WorkingDirectory workingDir = new WorkingDirectory(config.getLocalDir(), environment.getWorkingDirPrefix(), environment.isDebug())) {
-                    f.setWorkingDir(workingDir.toPath());
-                    List<CommandExecution> commandExecutionList = handler.before(workingDir.toPath());
-                    ExecutionReport report = null;
-                    enter();
-                    try {
-                        report = execute(workingDir.toPath(), commandExecutionList, environment.getVariables(), handler::onProgress);
-                    } finally {
-                        exit();
-                    }
-                    R result = handler.after(workingDir.toPath(), report);
-                    f.complete(result);
-                }
-            } catch (Exception e) {
-                f.completeExceptionally(e);
-            }
-        });
-        return f;
-    }
-
-    private class MyCf<R> extends ThreadInterruptedCompletableFuture<R> {
-
-        private Path workingDir;
-
-        private void setWorkingDir(Path workingDir) {
-            this.workingDir = workingDir;
-        }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            super.cancel(mayInterruptIfRunning);
-            if (mayInterruptIfRunning) {
-                localCommandExecutor.stop(workingDir);
-            }
-            return true;
-        }
+        return new MaybeCompletableFuture<>(execute2(environment, handler));
     }
 
     @Override

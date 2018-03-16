@@ -208,7 +208,6 @@ public class MpiComputationManagerTest {
                 }
             }).join();
         assertTrue(OUTPUT_FILE_CONTENT_1.equals(result));
-        assertTrue(Files.notExists(workingDirSav[0]));
     }
 
     @Test
@@ -247,7 +246,6 @@ public class MpiComputationManagerTest {
             fail();
         } catch (Exception ignored) {
         }
-        assertTrue(Files.notExists(workingDirSav[0]));
     }
 
     @Test
@@ -269,7 +267,6 @@ public class MpiComputationManagerTest {
                 }
             }).join();
         assertTrue(OUTPUT_FILE_CONTENT_2.equals(result));
-        assertTrue(Files.notExists(workingDirSav[0]));
     }
 
 }

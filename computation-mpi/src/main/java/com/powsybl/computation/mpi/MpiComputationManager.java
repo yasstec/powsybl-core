@@ -6,17 +6,19 @@
  */
 package com.powsybl.computation.mpi;
 
-import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.io.FileUtil;
 import com.powsybl.commons.io.WorkingDirectory;
 import com.powsybl.computation.*;
+import io.reactivex.Maybe;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -223,104 +225,77 @@ public class MpiComputationManager implements ComputationManager {
     }
 
     @Override
-    public <R> CompletableFuture<R> execute(final ExecutionEnvironment environment,
-                                            final ExecutionHandler<R> handler) {
+    public <R> Maybe<R> execute2(ExecutionEnvironment environment, ExecutionHandler<R> handler) {
         Objects.requireNonNull(environment);
         Objects.requireNonNull(handler);
 
         class AsyncContext {
 
             WorkingDirectory workingDir;
-
-            List<CommandExecution> parametersList;
-
-            ExecutionReport report;
-
         }
 
-        return CompletableFuture
-                .completedFuture(new AsyncContext())
-                .thenApplyAsync(ctxt -> {
-                    try {
-                        ctxt.workingDir = new WorkingDirectory(localDir, environment.getWorkingDirPrefix(), environment.isDebug());
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                    try {
-                        ctxt.parametersList = handler.before(ctxt.workingDir.toPath());
-                    } catch (Throwable t) {
-                        try {
-                            ctxt.workingDir.close();
-                        } catch (IOException e2) {
-                            LOGGER.error(e2.toString(), e2);
-                        }
-                        throw new PowsyblException(t);
-                    }
-                    return ctxt;
-                }, executorContext.getComputationExecutor())
-                .thenComposeAsync(ctxt -> {
-                    if (ctxt.parametersList.isEmpty()) {
-                        ctxt.report = new ExecutionReport(Collections.emptyList());
-                        return CompletableFuture.completedFuture(ctxt);
-                    } else {
-                        CompletableFuture<ExecutionReport> last = null;
-                        for (CommandExecution execution : ctxt.parametersList) {
+        AsyncContext ctxt = new AsyncContext();
 
-                            ExecutionListener l = new DefaultExecutionListener() {
+        Scheduler schedulers = Schedulers.from(executorContext.getComputationExecutor());
 
-                                @Override
-                                public void onExecutionStart(int fromExecutionIndex, int toExecutionIndex) {
-                                    try {
-                                        for (int executionIndex = fromExecutionIndex; executionIndex <= toExecutionIndex; executionIndex++) {
-                                            handler.onExecutionStart(execution, executionIndex);
-                                        }
-                                    } catch (Exception e) {
-                                        LOGGER.error(e.toString(), e);
-                                    }
-                                }
+        return Single.<List<CommandExecution>>create(emitter -> {
+            ctxt.workingDir = new WorkingDirectory(localDir, environment.getWorkingDirPrefix(), environment.isDebug());
+            emitter.onSuccess(handler.before(ctxt.workingDir.toPath()));
+        })
+        .subscribeOn(schedulers)
+        .toMaybe()
+        .flatMap(commandExecutions -> {
 
-                                @Override
-                                public void onExecutionCompletion(int executionIndex) {
-                                    try {
-                                        handler.onExecutionCompletion(execution, executionIndex);
-                                    } catch (Exception e) {
-                                        LOGGER.error(e.toString(), e);
-                                    }
-                                }
-                            };
+            Single<ExecutionReport> last = null;
+            if (commandExecutions.isEmpty()) {
+                last = Single.just(new ExecutionReport(Collections.emptyList()));
+            } else {
+                for (CommandExecution execution : commandExecutions) {
 
-                            if (last == null) {
-                                last = scheduler.execute(execution, ctxt.workingDir.toPath(), environment.getVariables(), l);
-                            } else {
-                                last = last.thenCompose(report -> {
-                                    if (report.getErrors().isEmpty()) {
-                                        return scheduler.execute(execution, ctxt.workingDir.toPath(), environment.getVariables(), l);
-                                    } else {
-                                        return CompletableFuture.completedFuture(report);
-                                    }
-                                });
+                    ExecutionListener l = new DefaultExecutionListener() {
+
+                        @Override
+                        public void onExecutionStart(int fromExecutionIndex, int toExecutionIndex) {
+                            for (int executionIndex = fromExecutionIndex; executionIndex <= toExecutionIndex; executionIndex++) {
+                                handler.onExecutionStart(execution, executionIndex);
                             }
                         }
 
-                        return last.thenApply(report -> {
-                            ctxt.report = report;
-                            return ctxt;
+                        @Override
+                        public void onExecutionCompletion(int executionIndex) {
+                            handler.onExecutionCompletion(execution, executionIndex);
+                        }
+                    };
+
+                    if (last == null) {
+                        last = scheduler.execute(execution, ctxt.workingDir.toPath(), environment.getVariables(), l);
+                    } else {
+                        last = last.flatMap(report -> {
+                            if (report.getErrors().isEmpty()) {
+                                return scheduler.execute(execution, ctxt.workingDir.toPath(), environment.getVariables(), l);
+                            } else {
+                                return Single.just(report);
+                            }
                         });
                     }
-                }, executorContext.getComputationExecutor())
-                .thenApplyAsync(ctxt -> {
-                    try {
-                        return handler.after(ctxt.workingDir.toPath(), ctxt.report);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    } finally {
-                        try {
-                            ctxt.workingDir.close();
-                        } catch (IOException e2) {
-                            LOGGER.error(e2.toString(), e2);
-                        }
-                    }
-                }, executorContext.getComputationExecutor());
+                }
+            }
+
+            return last.subscribeOn(schedulers)
+                       .toMaybe()
+                       .map(report -> handler.after(ctxt.workingDir.toPath(), report));
+        })
+        .doFinally(() -> {
+            if (ctxt.workingDir != null) {
+                ctxt.workingDir.close();
+            }
+        });
+    }
+
+    @Override
+    public <R> CompletableFuture<R> execute(final ExecutionEnvironment environment,
+                                            final ExecutionHandler<R> handler) {
+        return new MaybeCompletableFuture<>(execute2(environment, handler));
     }
 
     @Override

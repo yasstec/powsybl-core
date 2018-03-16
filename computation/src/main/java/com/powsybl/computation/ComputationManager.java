@@ -6,6 +6,8 @@
  */
 package com.powsybl.computation;
 
+import io.reactivex.Maybe;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -32,6 +34,10 @@ public interface ComputationManager extends AutoCloseable {
     }
 
     <R> CompletableFuture<R> execute(ExecutionEnvironment environment, ExecutionHandler<R> handler);
+
+    default <R> Maybe<R> execute2(ExecutionEnvironment environment, ExecutionHandler<R> handler) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
     ComputationResourcesStatus getResourcesStatus();
 
