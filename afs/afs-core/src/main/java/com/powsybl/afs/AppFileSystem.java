@@ -6,7 +6,10 @@
  */
 package com.powsybl.afs;
 
-import com.powsybl.afs.storage.*;
+import com.powsybl.afs.storage.AppStorage;
+import com.powsybl.afs.storage.DefaultListenableAppStorage;
+import com.powsybl.afs.storage.ListenableAppStorage;
+import com.powsybl.afs.storage.NodeInfo;
 
 import java.util.Objects;
 
@@ -76,33 +79,14 @@ public class AppFileSystem implements AutoCloseable {
             }
         }
     }
-
-    public <T extends ProjectFile> T findProjectFile(String nodeId, Class<T> clazz) {
-        Objects.requireNonNull(nodeId);
-        Objects.requireNonNull(clazz);
-        NodeInfo nodeInfo = storage.getNodeInfo(nodeId);
-        ProjectFile projectFile = createProjectFile(nodeInfo);
-        return clazz.isAssignableFrom(projectFile.getClass()) ? (T) projectFile : null;
-    }
-
-    ProjectNode createProjectNode(NodeInfo nodeInfo) {
-        if (ProjectFolder.PSEUDO_CLASS.equals(nodeInfo.getPseudoClass())) {
-            return new ProjectFolder(new ProjectFileCreationContext(nodeInfo, storage, this));
-        } else {
-            return createProjectFile(nodeInfo);
-        }
-    }
-
-    ProjectFile createProjectFile(NodeInfo nodeInfo) {
-        Objects.requireNonNull(data);
-        ProjectFileCreationContext context = new ProjectFileCreationContext(nodeInfo, storage, this);
-        ProjectFileExtension extension = data.getProjectFileExtensionByPseudoClass(nodeInfo.getPseudoClass());
-        if (extension != null) {
-            return extension.createProjectFile(context);
-        } else {
-            return new UnknownProjectFile(context);
-        }
-    }
+//
+//    public <T extends ProjectFile> T findProjectFile(String nodeId, Class<T> clazz) {
+//        Objects.requireNonNull(nodeId);
+//        Objects.requireNonNull(clazz);
+//        NodeInfo nodeInfo = storage.getNodeInfo(nodeId);
+//        ProjectFile projectFile = createProjectFile(nodeInfo);
+//        return clazz.isAssignableFrom(projectFile.getClass()) ? (T) projectFile : null;
+//    }
 
     public TaskMonitor getTaskMonitor() {
         return taskMonitor;

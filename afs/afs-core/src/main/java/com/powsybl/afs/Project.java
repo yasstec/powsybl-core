@@ -24,6 +24,8 @@ public class Project extends File {
 
     public ProjectFolder getRootFolder() {
         NodeInfo rootFolderInfo = storage.getChildNode(info.getId(), ROOT_FOLDER_NAME).orElseThrow(AssertionError::new);
-        return new ProjectFolder(new ProjectFileCreationContext(rootFolderInfo, storage, fileSystem));
+        ProjectFolder rootFolder = new ProjectFolder(new ProjectFileCreationContext(rootFolderInfo, storage, this));
+        rootFolder.setParent(null);
+        return rootFolder;
     }
 }
