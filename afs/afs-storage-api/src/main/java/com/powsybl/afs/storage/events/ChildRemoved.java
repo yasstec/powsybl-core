@@ -14,14 +14,14 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class NodeRemoved extends NodeEvent {
+public class ChildRemoved extends NodeEvent {
 
     @JsonProperty("parentId")
     protected final String parentId;
 
     @JsonCreator
-    public NodeRemoved(@JsonProperty("id") String id, @JsonProperty("parentId") String parentId) {
-        super(id, NodeEventType.NODE_REMOVED);
+    public ChildRemoved(@JsonProperty("id") String id, @JsonProperty("parentId") String parentId) {
+        super(id);
         this.parentId = Objects.requireNonNull(parentId);
     }
 
@@ -36,8 +36,8 @@ public class NodeRemoved extends NodeEvent {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof NodeRemoved) {
-            NodeRemoved other = (NodeRemoved) obj;
+        if (obj instanceof ChildRemoved) {
+            ChildRemoved other = (ChildRemoved) obj;
             return id.equals(other.id) && parentId.equals(other.parentId);
         }
         return false;
@@ -45,6 +45,6 @@ public class NodeRemoved extends NodeEvent {
 
     @Override
     public String toString() {
-        return "NodeRemoved(id=" + id + ", parentId=" + parentId + ")";
+        return "ChildRemoved(id=" + id + ", parentId=" + parentId + ")";
     }
 }

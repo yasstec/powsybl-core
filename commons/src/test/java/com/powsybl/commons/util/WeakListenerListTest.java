@@ -8,8 +8,8 @@ package com.powsybl.commons.util;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -36,7 +36,7 @@ public class WeakListenerListTest {
         // the WeakHashMap
         listeners.notify(TestListener::onTest);
 
-        assertTrue(listeners.remove(l));
-        assertFalse(listeners.remove(l));
+        assertNotNull(listeners.remove(l));
+        assertNull(listeners.remove(l));
     }
 }

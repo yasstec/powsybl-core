@@ -14,21 +14,12 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class DependencyRemoved extends NodeEvent implements DependencyEvent {
-
-    @JsonProperty("dependencyName")
-    private final String dependencyName;
+public class DependencyRemoved extends DependencyEvent {
 
     @JsonCreator
     public DependencyRemoved(@JsonProperty("id") String id,
                              @JsonProperty("dependencyName") String dependencyName) {
-        super(id, NodeEventType.DEPENDENCY_REMOVED);
-        this.dependencyName = Objects.requireNonNull(dependencyName);
-    }
-
-    @Override
-    public String getDependencyName() {
-        return dependencyName;
+        super(id, dependencyName);
     }
 
     @Override

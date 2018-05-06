@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -43,15 +44,13 @@ public class DefaultListenableAppStorage extends ForwardingAppStorage implements
 
     @Override
     public NodeInfo createRootNodeIfNotExists(String name, String nodePseudoClass) {
-        NodeInfo nodeInfo = super.createRootNodeIfNotExists(name, nodePseudoClass);
-        addEvent(new NodeCreated(nodeInfo.getId(), null));
-        return nodeInfo;
+        return super.createRootNodeIfNotExists(name, nodePseudoClass);
     }
 
     @Override
     public NodeInfo createNode(String parentNodeId, String name, String nodePseudoClass, String description, int version, NodeGenericMetadata genericMetadata) {
         NodeInfo nodeInfo = super.createNode(parentNodeId, name, nodePseudoClass, description, version, genericMetadata);
-        addEvent(new NodeCreated(nodeInfo.getId(), parentNodeId));
+        addEvent(new ChildAdded(nodeInfo.getId(), parentNodeId));
         return nodeInfo;
     }
 
@@ -63,14 +62,16 @@ public class DefaultListenableAppStorage extends ForwardingAppStorage implements
 
     @Override
     public void setParentNode(String nodeId, String newParentNodeId) {
+        String oldParentNodeId = getParentNode(nodeId).map(NodeInfo::getId).orElseThrow(AssertionError::new);
         super.setParentNode(nodeId, newParentNodeId);
-        addEvent(new ParentChanged(nodeId));
+        addEvent(new ChildRemoved(nodeId, oldParentNodeId));
+        addEvent(new ChildAdded(nodeId, newParentNodeId));
     }
 
     @Override
     public String deleteNode(String nodeId) {
         String parentNodeId = super.deleteNode(nodeId);
-        addEvent(new NodeRemoved(nodeId, parentNodeId));
+        addEvent(new ChildRemoved(nodeId, parentNodeId));
         return parentNodeId;
     }
 
@@ -99,13 +100,13 @@ public class DefaultListenableAppStorage extends ForwardingAppStorage implements
     @Override
     public void addDoubleTimeSeriesData(String nodeId, int version, String timeSeriesName, List<DoubleArrayChunk> chunks) {
         super.addDoubleTimeSeriesData(nodeId, version, timeSeriesName, chunks);
-        addEvent(new TimeSeriesDataUpdated(nodeId, timeSeriesName));
+        addEvent(new TimeSeriesDataAdded(nodeId, timeSeriesName));
     }
 
     @Override
     public void addStringTimeSeriesData(String nodeId, int version, String timeSeriesName, List<StringArrayChunk> chunks) {
         super.addStringTimeSeriesData(nodeId, version, timeSeriesName, chunks);
-        addEvent(new TimeSeriesDataUpdated(nodeId, timeSeriesName));
+        addEvent(new TimeSeriesDataAdded(nodeId, timeSeriesName));
     }
 
     @Override
@@ -134,7 +135,13 @@ public class DefaultListenableAppStorage extends ForwardingAppStorage implements
         lock.lock();
         try {
             listeners.log();
-            listeners.notify(l -> l.onEvents(eventList));
+            listeners.notify((l, info) -> {
+                NodeEventFilter filter = (NodeEventFilter) info;
+                l.onEvents(new NodeEventList(eventList.getEvents().stream()
+                                                                  .filter(e -> e.getId().equals(filter.getNodeId())
+                                                                          && filter.getNodeClass().isAssignableFrom(e.getClass()))
+                                                                  .collect(Collectors.toList())));
+            });
             eventList = new NodeEventList();
         } finally {
             lock.unlock();
@@ -142,8 +149,9 @@ public class DefaultListenableAppStorage extends ForwardingAppStorage implements
     }
 
     @Override
-    public void addListener(AppStorageListener l) {
-        listeners.add(l);
+    public void addListener(AppStorageListener l, NodeEventFilter filter) {
+
+        listeners.add(l, filter);
     }
 
     @Override

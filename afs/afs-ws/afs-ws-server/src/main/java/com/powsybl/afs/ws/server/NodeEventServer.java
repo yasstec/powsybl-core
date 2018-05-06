@@ -8,8 +8,10 @@ package com.powsybl.afs.ws.server;
 
 import com.powsybl.afs.storage.ListenableAppStorage;
 import com.powsybl.afs.storage.events.AppStorageListener;
-import com.rte_france.imagrid.afs.ws.server.utils.AppDataBean;
+import com.powsybl.afs.storage.events.NodeEventFilter;
 import com.powsybl.afs.ws.utils.AfsRestApi;
+import com.powsybl.commons.exceptions.UncheckedClassNotFoundException;
+import com.rte_france.imagrid.afs.ws.server.utils.AppDataBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-@ServerEndpoint(value = "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + "/node_events/{fileSystemName}",
+@ServerEndpoint(value = "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + "/node_events/{fileSystemName}/{nodeId}/{nodeClassName}",
                 encoders = {NodeEventListEncoder.class})
 public class NodeEventServer {
 
@@ -30,12 +32,12 @@ public class NodeEventServer {
     @Inject
     private AppDataBean appDataBean;
 
-    @Inject
-    private WebSocketContext webSocketContext;
-
     @OnOpen
-    public void onOpen(@PathParam("fileSystemName") String fileSystemName, Session session) {
-        LOGGER.debug("WebSocket session '{}' opened for file system '{}'", session.getId(), fileSystemName);
+    public void onOpen(@PathParam("fileSystemName") String fileSystemName,
+                       @PathParam("nodeId") String nodeId,
+                       @PathParam("nodeClassName") String nodeClassName,
+                       Session session) {
+        LOGGER.debug("WebSocket session '{}' opened at {}", session.getId(), session.getRequestURI());
 
         ListenableAppStorage storage = appDataBean.getStorage(fileSystemName);
 
@@ -48,29 +50,28 @@ public class NodeEventServer {
                         LOGGER.error(result.getException().toString(), result.getException());
                     }
                 });
-            } else {
-                webSocketContext.removeSession(session);
             }
         };
-        storage.addListener(listener);
+        Class<?> nodeClass;
+        try {
+            nodeClass = Class.forName(nodeClassName);
+        } catch (ClassNotFoundException e) {
+            throw new UncheckedClassNotFoundException(e);
+        }
+        storage.addListener(listener, new NodeEventFilter(nodeId, nodeClass));
         session.getUserProperties().put("listener", listener); // to prevent weak listener from being garbage collected
-
-        webSocketContext.addSession(session);
     }
 
     private void removeSession(String fileSystemName, Session session) {
         ListenableAppStorage storage = appDataBean.getStorage(fileSystemName);
-
         AppStorageListener listener = (AppStorageListener) session.getUserProperties().get("listener");
         storage.removeListener(listener);
-
-        webSocketContext.removeSession(session);
     }
 
     @OnClose
     public void onClose(@PathParam("fileSystemName") String fileSystemName, Session session, CloseReason closeReason) {
-        LOGGER.debug("WebSocket session '{}' closed ({}) for file system '{}'",
-                session.getId(), closeReason, fileSystemName);
+        LOGGER.debug("WebSocket session '{}' closed ({})",
+                session.getId(), closeReason);
 
         removeSession(fileSystemName, session);
     }

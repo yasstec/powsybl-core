@@ -9,6 +9,7 @@ package com.powsybl.scripting.groovy;
 import com.powsybl.afs.*;
 import com.powsybl.afs.storage.*;
 import com.powsybl.afs.storage.events.AppStorageListener;
+import com.powsybl.afs.storage.events.NodeEventFilter;
 import com.powsybl.computation.ComputationManager;
 import org.junit.After;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public abstract class AbstractGroovyScriptTest {
         }
 
         @Override
-        public void addListener(AppStorageListener l) {
+        public void addListener(AppStorageListener l, NodeEventFilter filter) {
         }
 
         @Override

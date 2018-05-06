@@ -14,15 +14,15 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class TimeSeriesDataUpdated extends NodeEvent {
+public class TimeSeriesDataAdded extends TimeSeriesEvent {
 
     @JsonProperty("timeSeriesName")
     private final String timeSeriesName;
 
     @JsonCreator
-    public TimeSeriesDataUpdated(@JsonProperty("id") String id,
-                                 @JsonProperty("timeSeriesName") String timeSeriesName) {
-        super(id, NodeEventType.TIME_SERIES_DATA_UPDATED);
+    public TimeSeriesDataAdded(@JsonProperty("id") String id,
+                               @JsonProperty("timeSeriesName") String timeSeriesName) {
+        super(id);
         this.timeSeriesName = Objects.requireNonNull(timeSeriesName);
     }
 
@@ -37,8 +37,8 @@ public class TimeSeriesDataUpdated extends NodeEvent {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof TimeSeriesDataUpdated) {
-            TimeSeriesDataUpdated other = (TimeSeriesDataUpdated) obj;
+        if (obj instanceof TimeSeriesDataAdded) {
+            TimeSeriesDataAdded other = (TimeSeriesDataAdded) obj;
             return id.equals(other.id) && timeSeriesName.equals(other.timeSeriesName);
         }
         return false;
@@ -46,6 +46,6 @@ public class TimeSeriesDataUpdated extends NodeEvent {
 
     @Override
     public String toString() {
-        return "TimeSeriesDataUpdated(id=" + id + ", timeSeriesName=" + timeSeriesName + ")";
+        return "TimeSeriesDataAdded(id=" + id + ", timeSeriesName=" + timeSeriesName + ")";
     }
 }

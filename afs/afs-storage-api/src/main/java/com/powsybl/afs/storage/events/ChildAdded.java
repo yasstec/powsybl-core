@@ -14,14 +14,14 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class NodeCreated extends NodeEvent {
+public class ChildAdded extends NodeEvent {
 
     @JsonProperty("parentId")
     protected final String parentId;
 
     @JsonCreator
-    public NodeCreated(@JsonProperty("id") String id, @JsonProperty("parentId") String parentId) {
-        super(id, NodeEventType.NODE_CREATED);
+    public ChildAdded(@JsonProperty("id") String id, @JsonProperty("parentId") String parentId) {
+        super(id);
         this.parentId = parentId;
     }
 
@@ -36,8 +36,8 @@ public class NodeCreated extends NodeEvent {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof NodeCreated) {
-            NodeCreated other = (NodeCreated) obj;
+        if (obj instanceof ChildAdded) {
+            ChildAdded other = (ChildAdded) obj;
             return id.equals(other.id) && Objects.equals(parentId, other.parentId);
         }
         return false;
@@ -45,6 +45,6 @@ public class NodeCreated extends NodeEvent {
 
     @Override
     public String toString() {
-        return "NodeCreated(id=" + id + ", parentId=" + parentId + ")";
+        return "ChildAdded(id=" + id + ", parentId=" + parentId + ")";
     }
 }

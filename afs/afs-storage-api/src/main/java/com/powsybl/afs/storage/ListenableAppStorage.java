@@ -7,13 +7,14 @@
 package com.powsybl.afs.storage;
 
 import com.powsybl.afs.storage.events.AppStorageListener;
+import com.powsybl.afs.storage.events.NodeEventFilter;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
 public interface ListenableAppStorage extends AppStorage {
 
-    void addListener(AppStorageListener l);
+    void addListener(AppStorageListener l, NodeEventFilter filter);
 
     void removeListener(AppStorageListener l);
 

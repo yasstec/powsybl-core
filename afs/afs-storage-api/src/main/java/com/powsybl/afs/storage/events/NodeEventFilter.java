@@ -6,24 +6,27 @@
  */
 package com.powsybl.afs.storage.events;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class DependencyEvent extends NodeEvent {
+public class NodeEventFilter {
 
-    @JsonProperty("dependencyName")
-    protected final String dependencyName;
+    private final String nodeId;
 
-    protected DependencyEvent(String id, String dependencyName) {
-        super(id);
-        this.dependencyName = Objects.requireNonNull(dependencyName);
+    private final Class<?> nodeClass;
+
+    public NodeEventFilter(String nodeId, Class<?> nodeClass) {
+        this.nodeId = Objects.requireNonNull(nodeId);
+        this.nodeClass = Objects.requireNonNull(nodeClass);
     }
 
-    public String getDependencyName() {
-        return dependencyName;
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public Class<?> getNodeClass() {
+        return nodeClass;
     }
 }

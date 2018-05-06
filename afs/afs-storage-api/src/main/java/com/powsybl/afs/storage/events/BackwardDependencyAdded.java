@@ -14,21 +14,12 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class BackwardDependencyAdded extends NodeEvent implements DependencyEvent {
-
-    @JsonProperty("dependencyName")
-    private final String dependencyName;
+public class BackwardDependencyAdded extends DependencyEvent {
 
     @JsonCreator
     public BackwardDependencyAdded(@JsonProperty("id") String id,
                                    @JsonProperty("dependencyName") String dependencyName) {
-        super(id, NodeEventType.BACKWARD_DEPENDENCY_ADDED);
-        this.dependencyName = Objects.requireNonNull(dependencyName);
-    }
-
-    @Override
-    public String getDependencyName() {
-        return dependencyName;
+        super(id, dependencyName);
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class ForwardingAppStorage implements AppStorage {
 
-    private final AppStorage storage;
+    protected final AppStorage storage;
 
     public ForwardingAppStorage(AppStorage storage) {
         this.storage = Objects.requireNonNull(storage);

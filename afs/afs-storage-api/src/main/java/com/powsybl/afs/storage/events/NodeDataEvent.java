@@ -13,17 +13,17 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class DependencyEvent extends NodeEvent {
+public class NodeDataEvent extends NodeEvent {
 
-    @JsonProperty("dependencyName")
-    protected final String dependencyName;
+    @JsonProperty("dataName")
+    protected final String dataName;
 
-    protected DependencyEvent(String id, String dependencyName) {
+    protected NodeDataEvent(String id, String dataName) {
         super(id);
-        this.dependencyName = Objects.requireNonNull(dependencyName);
+        this.dataName = Objects.requireNonNull(dataName);
     }
 
-    public String getDependencyName() {
-        return dependencyName;
+    public String getDataName() {
+        return dataName;
     }
 }

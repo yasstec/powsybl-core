@@ -12,7 +12,7 @@ import com.powsybl.afs.ProjectFileCreationContext;
 import com.powsybl.afs.storage.events.AppStorageListener;
 import com.powsybl.afs.storage.events.NodeDataUpdated;
 import com.powsybl.afs.storage.events.NodeEvent;
-import com.powsybl.afs.storage.events.NodeEventType;
+import com.powsybl.afs.storage.events.NodeEventFilter;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -34,17 +34,15 @@ public abstract class AbstractModificationScript extends ProjectFile implements 
     public AbstractModificationScript(ProjectFileCreationContext context, int codeVersion, String scriptContentName) {
         super(context, codeVersion);
         this.scriptContentName = Objects.requireNonNull(scriptContentName);
-        storage.addListener(l);
+        storage.addListener(l, new NodeEventFilter(info.getId(), NodeDataUpdated.class));
     }
 
     private void processEvents(List<NodeEvent> events, String nodeId, List<ScriptListener> listeners) {
         for (NodeEvent event : events) {
-            if (event.getType() == NodeEventType.NODE_DATA_UPDATED) {
-                NodeDataUpdated dataUpdated = (NodeDataUpdated) event;
-                if (dataUpdated.getId().equals(nodeId) && scriptContentName.equals(dataUpdated.getDataName())) {
-                    for (ScriptListener listener : listeners) {
-                        listener.scriptUpdated();
-                    }
+            NodeDataUpdated dataUpdated = (NodeDataUpdated) event;
+            if (scriptContentName.equals(dataUpdated.getDataName())) {
+                for (ScriptListener listener : listeners) {
+                    listener.scriptUpdated();
                 }
             }
         }

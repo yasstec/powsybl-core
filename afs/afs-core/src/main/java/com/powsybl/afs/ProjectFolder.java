@@ -9,9 +9,9 @@ package com.powsybl.afs;
 import com.powsybl.afs.storage.NodeGenericMetadata;
 import com.powsybl.afs.storage.NodeInfo;
 import com.powsybl.afs.storage.events.AppStorageListener;
-import com.powsybl.afs.storage.events.NodeCreated;
+import com.powsybl.afs.storage.events.ChildAdded;
+import com.powsybl.afs.storage.events.ChildRemoved;
 import com.powsybl.afs.storage.events.NodeEvent;
-import com.powsybl.afs.storage.events.NodeRemoved;
 import com.powsybl.commons.util.WeakListenerList;
 
 import java.util.Comparator;
@@ -34,13 +34,13 @@ public class ProjectFolder extends ProjectNode implements FolderBase<ProjectNode
         for (NodeEvent event : eventList.getEvents()) {
             switch (event.getType()) {
                 case NODE_CREATED:
-                    if (getId().equals(((NodeCreated) event).getParentId())) {
+                    if (getId().equals(((ChildAdded) event).getParentId())) {
                         listeners.notify(listener -> listener.childAdded(event.getId()));
                     }
                     break;
 
                 case NODE_REMOVED:
-                    if (getId().equals(((NodeRemoved) event).getParentId())) {
+                    if (getId().equals(((ChildRemoved) event).getParentId())) {
                         listeners.notify(listener -> listener.childRemoved(event.getId()));
                     }
                     break;

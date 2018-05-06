@@ -10,6 +10,7 @@ import com.powsybl.afs.storage.NodeInfo;
 import com.powsybl.afs.storage.events.AppStorageListener;
 import com.powsybl.afs.storage.events.DependencyEvent;
 import com.powsybl.afs.storage.events.NodeEvent;
+import com.powsybl.afs.storage.events.NodeEventFilter;
 import com.powsybl.commons.util.WeakListenerList;
 
 import java.util.List;
@@ -26,28 +27,26 @@ public class ProjectFile extends ProjectNode {
 
     private final AppStorageListener l = eventList -> {
         for (NodeEvent event : eventList.getEvents()) {
-            if (event.getId().equals(getId())) {
-                switch (event.getType()) {
-                    case DEPENDENCY_ADDED:
-                    case DEPENDENCY_REMOVED:
-                        listeners.notify(listener -> listener.dependencyChanged(((DependencyEvent) event).getDependencyName()));
-                        break;
+            switch (event.getType()) {
+                case DEPENDENCY_ADDED:
+                case DEPENDENCY_REMOVED:
+                    listeners.notify(listener -> listener.dependencyChanged(((DependencyEvent) event).getDependencyName()));
+                    break;
 
-                    case BACKWARD_DEPENDENCY_ADDED:
-                    case BACKWARD_DEPENDENCY_REMOVED:
-                        listeners.notify(listener -> listener.backwardDependencyChanged(((DependencyEvent) event).getDependencyName()));
-                        break;
+                case BACKWARD_DEPENDENCY_ADDED:
+                case BACKWARD_DEPENDENCY_REMOVED:
+                    listeners.notify(listener -> listener.backwardDependencyChanged(((DependencyEvent) event).getDependencyName()));
+                    break;
 
-                    default:
-                        break;
-                }
+                default:
+                    break;
             }
         }
     };
 
     protected ProjectFile(ProjectFileCreationContext context, int codeVersion) {
         super(context, codeVersion, true);
-        storage.addListener(l);
+        storage.addListener(l, new NodeEventFilter(info.getId(), DependencyEvent.class));
     }
 
     @Override

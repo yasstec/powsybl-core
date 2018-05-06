@@ -14,20 +14,12 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class NodeDataUpdated extends NodeEvent {
-
-    @JsonProperty("dataName")
-    private final String dataName;
+public class NodeDataUpdated extends NodeDataEvent {
 
     @JsonCreator
     public NodeDataUpdated(@JsonProperty("id") String id,
                            @JsonProperty("dataName") String dataName) {
-        super(id, NodeEventType.NODE_DATA_UPDATED);
-        this.dataName = Objects.requireNonNull(dataName);
-    }
-
-    public String getDataName() {
-        return dataName;
+        super(id, dataName);
     }
 
     @Override

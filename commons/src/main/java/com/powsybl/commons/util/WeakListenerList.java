@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -31,44 +32,65 @@ public class WeakListenerList<L> {
     }
 
     public void add(L l) {
+        add(l, new Object());
+    }
+
+    public void add(L l, Object info) {
         Objects.requireNonNull(l);
+        Objects.requireNonNull(info);
         lock.lock();
         try {
-            listeners.put(l, new Object());
+            listeners.put(l, info);
         } finally {
             lock.unlock();
         }
     }
 
-    public boolean remove(L l) {
+    public boolean contains(L l) {
         Objects.requireNonNull(l);
         lock.lock();
         try {
-            return listeners.remove(l) != null;
+            return listeners.containsKey(l);
         } finally {
             lock.unlock();
         }
     }
 
-    public void removeAll() {
+    public Object remove(L l) {
+        Objects.requireNonNull(l);
         lock.lock();
         try {
+            return listeners.remove(l);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public Collection<Object> removeAll() {
+        lock.lock();
+        try {
+            Collection<Object> values = listeners.values();
             listeners.clear();
+            return values;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void notify(BiConsumer<L, Object> notifier) {
+        Objects.requireNonNull(notifier);
+        lock.lock();
+        try {
+            for (Map.Entry<L, Object> e : new HashSet<>(listeners.entrySet())) {
+                notifier.accept(e.getKey(), e.getValue());
+            }
         } finally {
             lock.unlock();
         }
     }
 
     public void notify(Consumer<L> notifier) {
-        Objects.requireNonNull(notifier);
-        lock.lock();
-        try {
-            for (L listener : new HashSet<>(listeners.keySet())) {
-                notifier.accept(listener);
-            }
-        } finally {
-            lock.unlock();
-        }
+        notify((l, o) -> notifier.accept(l));
     }
 
     public List<L> toList() {

@@ -22,7 +22,7 @@ public class NodeDescriptionUpdated extends NodeEvent {
     @JsonCreator
     public NodeDescriptionUpdated(@JsonProperty("id") String id,
                                   @JsonProperty("description") String description) {
-        super(id, NodeEventType.NODE_DESCRIPTION_UPDATED);
+        super(id);
         this.description = Objects.requireNonNull(description);
     }
 

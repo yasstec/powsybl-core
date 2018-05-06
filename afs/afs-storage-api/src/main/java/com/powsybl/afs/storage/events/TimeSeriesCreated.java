@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class TimeSeriesCreated extends NodeEvent {
+public class TimeSeriesCreated extends TimeSeriesEvent {
 
     @JsonProperty("timeSeriesName")
     private final String timeSeriesName;
@@ -22,7 +22,7 @@ public class TimeSeriesCreated extends NodeEvent {
     @JsonCreator
     public TimeSeriesCreated(@JsonProperty("id") String id,
                              @JsonProperty("timeSeriesName") String timeSeriesName) {
-        super(id, NodeEventType.TIME_SERIES_CREATED);
+        super(id);
         this.timeSeriesName = Objects.requireNonNull(timeSeriesName);
     }
 
