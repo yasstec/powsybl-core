@@ -21,6 +21,6 @@ public interface SecurityAnalysis {
 
     boolean removeInterceptor(SecurityAnalysisInterceptor interceptor);
 
-    CompletableFuture<SecurityAnalysisResult> runAsync(ContingenciesProvider contingenciesProvider, String workingStateId, SecurityAnalysisParameters securityAnalysisParameters);
+    CompletableFuture<SecurityAnalysisResult> run(String workingStateId, SecurityAnalysisParameters parameters, ContingenciesProvider contingenciesProvider);
 
 }

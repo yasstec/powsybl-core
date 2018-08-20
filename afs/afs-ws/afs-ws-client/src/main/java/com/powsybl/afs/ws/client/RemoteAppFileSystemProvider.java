@@ -7,14 +7,23 @@
 package com.powsybl.afs.ws.client;
 
 import com.google.auto.service.AutoService;
+import com.google.common.base.Supplier;
 import com.powsybl.afs.AppFileSystem;
 import com.powsybl.afs.AppFileSystemProvider;
-import com.powsybl.computation.ComputationManager;
-import com.powsybl.afs.ws.storage.RemoteTaskMonitor;
+import com.powsybl.afs.AppFileSystemProviderContext;
+import com.powsybl.afs.ws.client.utils.RemoteServiceConfig;
 import com.powsybl.afs.ws.storage.RemoteAppStorage;
 import com.powsybl.afs.ws.storage.RemoteListenableAppStorage;
+import com.powsybl.afs.ws.storage.RemoteTaskMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.ProcessingException;
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -24,21 +33,40 @@ import java.util.stream.Collectors;
 @AutoService(AppFileSystemProvider.class)
 public class RemoteAppFileSystemProvider implements AppFileSystemProvider {
 
-    private final List<RemoteAppFileSystemConfig> configs;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteAppFileSystemProvider.class);
+
+    private final Supplier<Optional<RemoteServiceConfig>> configSupplier;
 
     public RemoteAppFileSystemProvider() {
-        this.configs = RemoteAppFileSystemConfig.load();
+        this(RemoteServiceConfig::load);
+    }
+
+    public RemoteAppFileSystemProvider(Supplier<Optional<RemoteServiceConfig>> configSupplier) {
+        this.configSupplier = Objects.requireNonNull(configSupplier);
     }
 
     @Override
-    public List<AppFileSystem> getFileSystems(ComputationManager computationManager) {
-        return configs.stream()
-                .map(config ->  {
-                    RemoteAppStorage storage = new RemoteAppStorage(config.getFileSystemName(), config.getUrl());
-                    RemoteListenableAppStorage listenableStorage = new RemoteListenableAppStorage(storage, config.getUrl());
-                    RemoteTaskMonitor taskMonitor = new RemoteTaskMonitor(config.getFileSystemName(), config.getUrl());
-                    return new AppFileSystem(config.getFileSystemName(), true, listenableStorage, taskMonitor);
-                })
-                .collect(Collectors.toList());
+    public List<AppFileSystem> getFileSystems(AppFileSystemProviderContext context) {
+        Objects.requireNonNull(context);
+        Optional<RemoteServiceConfig> config = configSupplier.get();
+        if (config.isPresent()) {
+            URI uri = config.get().getRestUri();
+            try {
+                return RemoteAppStorage.getFileSystemNames(uri, context.getToken()).stream()
+                        .map(fileSystemName -> {
+                            RemoteAppStorage storage = new RemoteAppStorage(fileSystemName, uri, context.getToken());
+                            RemoteListenableAppStorage listenableStorage = new RemoteListenableAppStorage(storage, uri);
+                            RemoteTaskMonitor taskMonitor = new RemoteTaskMonitor(fileSystemName, uri, context.getToken());
+                            return new AppFileSystem(fileSystemName, true, listenableStorage, taskMonitor);
+                        })
+                        .collect(Collectors.toList());
+            } catch (ProcessingException e) {
+                LOGGER.warn(e.toString());
+                return Collections.emptyList();
+            }
+        } else {
+            LOGGER.warn("Remote service config is missing");
+            return Collections.emptyList();
+        }
     }
 }

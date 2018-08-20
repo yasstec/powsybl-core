@@ -7,20 +7,23 @@
 package com.powsybl.afs.network.client;
 
 import com.google.common.base.Supplier;
+import com.powsybl.afs.AfsException;
 import com.powsybl.afs.ProjectFile;
 import com.powsybl.afs.ext.base.NetworkCacheService;
 import com.powsybl.afs.ext.base.ProjectCase;
 import com.powsybl.afs.ext.base.ProjectCaseListener;
 import com.powsybl.afs.ext.base.ScriptType;
+import com.powsybl.afs.ws.client.utils.ClientUtils;
+import com.powsybl.afs.ws.client.utils.RemoteServiceConfig;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.xml.NetworkXml;
-import com.powsybl.afs.ws.client.utils.ClientUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -28,6 +31,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.powsybl.afs.ws.client.utils.ClientUtils.checkOk;
 import static com.powsybl.afs.ws.client.utils.ClientUtils.readEntityIfOk;
@@ -42,16 +46,23 @@ class RemoteNetworkCacheService implements NetworkCacheService {
     private static final String NODE_ID = "nodeId";
     private static final String NODE_PATH = "fileSystems/{fileSystemName}/nodes/{nodeId}";
 
-    private final Supplier<RemoteNetworkCacheServiceConfig> configSupplier;
+    private final Supplier<Optional<RemoteServiceConfig>> configSupplier;
 
-    RemoteNetworkCacheService(Supplier<RemoteNetworkCacheServiceConfig> configSupplier) {
+    private final String token;
+
+    RemoteNetworkCacheService(Supplier<Optional<RemoteServiceConfig>> configSupplier, String token) {
         this.configSupplier = Objects.requireNonNull(configSupplier);
+        this.token = token;
     }
 
     private static WebTarget createWebTarget(Client client, URI baseUri) {
         return client.target(baseUri)
                 .path("rest")
                 .path("networkCache");
+    }
+
+    private RemoteServiceConfig getConfig() {
+        return Objects.requireNonNull(configSupplier.get()).orElseThrow(() -> new AfsException("Remote service config is missing"));
     }
 
     @Override
@@ -63,12 +74,13 @@ class RemoteNetworkCacheService implements NetworkCacheService {
 
         Client client = ClientUtils.createClient();
         try {
-            WebTarget webTarget = createWebTarget(client, configSupplier.get().getRestUri());
+            WebTarget webTarget = createWebTarget(client, getConfig().getRestUri());
 
             Response response = webTarget.path(NODE_PATH)
                     .resolveTemplate(FILE_SYSTEM_NAME, projectCase.getFileSystem().getName())
                     .resolveTemplate(NODE_ID, projectCase.getId())
                     .request(MediaType.APPLICATION_XML)
+                    .header(HttpHeaders.AUTHORIZATION, token)
                     .get();
             try (InputStream is = readEntityIfOk(response, InputStream.class)) {
                 return NetworkXml.read(is);
@@ -93,13 +105,14 @@ class RemoteNetworkCacheService implements NetworkCacheService {
 
         Client client = ClientUtils.createClient();
         try {
-            WebTarget webTarget = createWebTarget(client, configSupplier.get().getRestUri());
+            WebTarget webTarget = createWebTarget(client, getConfig().getRestUri());
 
             Response response = webTarget.path(NODE_PATH)
                     .resolveTemplate(FILE_SYSTEM_NAME, projectCase.getFileSystem().getName())
                     .resolveTemplate(NODE_ID, projectCase.getId())
                     .queryParam("scriptType", scriptType.name())
                     .request(MediaType.TEXT_PLAIN)
+                    .header(HttpHeaders.AUTHORIZATION, token)
                     .post(Entity.text(scriptContent));
             try {
                 return readEntityIfOk(response, String.class);
@@ -120,12 +133,13 @@ class RemoteNetworkCacheService implements NetworkCacheService {
 
         Client client = ClientUtils.createClient();
         try {
-            WebTarget webTarget = createWebTarget(client, configSupplier.get().getRestUri());
+            WebTarget webTarget = createWebTarget(client, getConfig().getRestUri());
 
             Response response = webTarget.path(NODE_PATH)
                     .resolveTemplate(FILE_SYSTEM_NAME, projectCase.getFileSystem().getName())
                     .resolveTemplate(NODE_ID, projectCase.getId())
                     .request()
+                    .header(HttpHeaders.AUTHORIZATION, token)
                     .delete();
             try {
                 checkOk(response);

@@ -7,9 +7,14 @@
 package com.powsybl.afs.network.client;
 
 import com.google.auto.service.AutoService;
-import com.google.common.base.Suppliers;
+import com.google.common.base.Supplier;
+import com.powsybl.afs.ServiceCreationContext;
 import com.powsybl.afs.ServiceExtension;
 import com.powsybl.afs.ext.base.NetworkCacheService;
+import com.powsybl.afs.ws.client.utils.RemoteServiceConfig;
+
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -17,13 +22,23 @@ import com.powsybl.afs.ext.base.NetworkCacheService;
 @AutoService(ServiceExtension.class)
 public class RemoteNetworkCacheServiceExtension implements ServiceExtension<NetworkCacheService> {
 
+    private final Supplier<Optional<RemoteServiceConfig>> configSupplier;
+
+    public RemoteNetworkCacheServiceExtension() {
+        this(RemoteServiceConfig::load);
+    }
+
+    public RemoteNetworkCacheServiceExtension(Supplier<Optional<RemoteServiceConfig>> configSupplier) {
+        this.configSupplier = Objects.requireNonNull(configSupplier);
+    }
+
     @Override
     public ServiceKey<NetworkCacheService> getServiceKey() {
         return new ServiceKey<>(NetworkCacheService.class, true);
     }
 
     @Override
-    public RemoteNetworkCacheService createService() {
-        return new RemoteNetworkCacheService(Suppliers.memoize(RemoteNetworkCacheServiceConfig::load));
+    public NetworkCacheService createService(ServiceCreationContext context) {
+        return new RemoteNetworkCacheService(configSupplier, context.getToken());
     }
 }
