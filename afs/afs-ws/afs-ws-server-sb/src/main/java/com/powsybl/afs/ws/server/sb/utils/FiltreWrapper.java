@@ -34,7 +34,7 @@ import org.springframework.http.HttpHeaders;
 
 
 @Configuration
-public class MyWebConfig implements Filter   {
+public class FiltreWrapper implements Filter   {
 	@Override
 	public final void doFilter(final ServletRequest servletRequest,
 	                           final ServletResponse servletResponse,

@@ -46,7 +46,6 @@ public class RemoteListenableAppStorageSB extends ForwardingAppStorage implement
         LOGGER.debug("Connecting to node event websocket at {}", endPointUri);
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        System.out.println("WebSocketContainer " + container +  "    endPointUri : "+ endPointUri);
         try {
             container.connectToServer(new NodeEventClient(storage.getFileSystemName(), listeners), endPointUri);
         } catch (IOException e) {
