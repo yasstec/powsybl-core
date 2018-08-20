@@ -43,8 +43,6 @@ public class MyWebConfig implements Filter   {
 	    HttpServletRequest request = (HttpServletRequest) servletRequest;
 	    HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-	    
-	    
 	    boolean isGzipped = request.getHeader(HttpHeaders.CONTENT_ENCODING) != null && request.getHeader(HttpHeaders.CONTENT_ENCODING).contains("gzip");
 	    
 	    boolean requestTypeSupported = "POST".equals(request.getMethod()) ||  "PUT".equals(request.getMethod());
@@ -73,8 +71,6 @@ public class MyWebConfig implements Filter   {
 
 	@Override
 	public void destroy() {
-		// TODO Auto-generated method stub
-		
 	}
 }
 
@@ -181,17 +177,6 @@ class GZIPResponseStream extends ServletOutputStream {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 final class GzippedInputStreamWrapper extends HttpServletRequestWrapper {

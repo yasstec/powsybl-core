@@ -43,42 +43,33 @@ public class AppStorageServerSB {
 	@Autowired(required=true)
     private AppDataBeanSB appDataBean;
 
-    @GetMapping("fileSystems")
+    //@GetMapping("fileSystems")
+	@RequestMapping(method = RequestMethod.GET, value = "fileSystems")
     public List<String> getFileSystemNames() {
         return appDataBean.getAppDataSB().getRemotelyAccessibleFileSystemNames();
     }
-
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/rootNode", produces = "application/json")
     public ResponseEntity<NodeInfo> createRootNodeIfNotExists(@PathVariable("fileSystemName") String fileSystemName, @RequestParam("nodeName") String nodeName, @RequestParam("nodePseudoClass") String nodePseudoClass) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         NodeInfo rootNodeInfo = storage.createRootNodeIfNotExists(nodeName, nodePseudoClass);
-        //HttpHeaders headers = new HttpHeaders();
-        //headers.add("Responded", "AppStorageServerSB");
         return ResponseEntity.ok()./*accepted().headers(headers).*/body(rootNodeInfo);
     }
-    
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/flush", consumes= "application/json")
     public ResponseEntity<String> flush(@PathVariable("fileSystemName") String fileSystemName, @RequestBody StorageChangeSet changeSet) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush : "  +changeSet);
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush : "  +changeSet.getChanges());
         AppStorage storage = appDataBean.getStorage(fileSystemName);
 
         for (StorageChange change : changeSet.getChanges()) {
-        	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush 0 ");
             switch (change.getType()) {
                 case TIME_SERIES_CREATION:
-                	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush 1");
                     TimeSeriesCreation creation = (TimeSeriesCreation) change;
                     storage.createTimeSeries(creation.getNodeId(), creation.getMetadata());
                     break;
                 case DOUBLE_TIME_SERIES_CHUNKS_ADDITION:
-                	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush 2");
                     DoubleTimeSeriesChunksAddition doubleAddition = (DoubleTimeSeriesChunksAddition) change;
                     storage.addDoubleTimeSeriesData(doubleAddition.getNodeId(), doubleAddition.getVersion(),
                                                     doubleAddition.getTimeSeriesName(), doubleAddition.getChunks());
                     break;
                 case STRING_TIME_SERIES_CHUNKS_ADDITION:
-                	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush 3");
                     StringTimeSeriesChunksAddition stringAddition = (StringTimeSeriesChunksAddition) change;
                     storage.addStringTimeSeriesData(stringAddition.getNodeId(), stringAddition.getVersion(),
                                                     stringAddition.getTimeSeriesName(), stringAddition.getChunks());
@@ -87,24 +78,17 @@ public class AppStorageServerSB {
                     throw new AssertionError("Unknown change type " + change.getType());
             }
         }
-
         // propagate flush to underlying storage
-        //System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::flush 4 class : " + storage.getClass());
         storage.flush();
 
         return ResponseEntity.ok().build();
     }
-
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/writable", produces=MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> isWritable(@PathVariable("fileSystemName") String fileSystemName, @PathVariable("nodeId") String nodeId) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::isWritable : " + fileSystemName);
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         boolean writable = storage.isWritable(nodeId);
-        //System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::isWritable : " + writable);
         return ResponseEntity.ok().body(Boolean.toString(writable));
     }
-    
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/parent", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NodeInfo> getParentNode(@PathVariable("fileSystemName") String fileSystemName, @PathVariable("nodeId") String nodeId) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
@@ -115,24 +99,18 @@ public class AppStorageServerSB {
             return ResponseEntity.noContent().build();
         }
     }
-    
-    
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}",  produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NodeInfo> getNodeInfo(@PathVariable("fileSystemName") String fileSystemName, @PathVariable("nodeId") String nodeId) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         NodeInfo nodeInfo = storage.getNodeInfo(nodeId);
-        //System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::getNodeInfo : " + nodeInfo);
         return ResponseEntity.ok().body(nodeInfo);
     }
-
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/children",  produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NodeInfo>> getChildNodes(@PathVariable("fileSystemName") String fileSystemName, @PathVariable("nodeId") String nodeId) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         List<NodeInfo> childNodes = storage.getChildNodes(nodeId);
         return ResponseEntity.ok().body(childNodes);
     }
-    
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/children/{childName}", produces = MediaType.APPLICATION_JSON_VALUE, consumes=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NodeInfo> createNode(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
@@ -141,12 +119,10 @@ public class AppStorageServerSB {
     		@RequestParam("nodePseudoClass") String nodePseudoClass,
     		@RequestParam("version") int version,
     		@RequestBody NodeGenericMetadata nodeMetadata) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::createNode : " + nodeMetadata);
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         NodeInfo newNodeInfo =  storage.createNode(nodeId, childName, nodePseudoClass, description, version, nodeMetadata);
         return ResponseEntity.ok().body(newNodeInfo);
     }
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/children/{childName}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NodeInfo> getChildNode(@PathVariable("fileSystemName") String fileSystemName,
     					@PathVariable("nodeId") String nodeId,
@@ -159,13 +135,10 @@ public class AppStorageServerSB {
             return ResponseEntity.noContent().build();
         }
     }
-    
-    
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/description", consumes = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> setDescription(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
     		@RequestBody String description) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB::setDescription : " + description);
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         storage.setDescription(nodeId, description);
         return ResponseEntity.ok().build();
@@ -177,7 +150,6 @@ public class AppStorageServerSB {
         storage.updateModificationTime(nodeId);
         return ResponseEntity.ok().build();
     }
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/dependencies", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<NodeDependency>> getDependencies(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId) {
@@ -192,13 +164,11 @@ public class AppStorageServerSB {
         Set<NodeInfo> backwardDependencyNodes = storage.getBackwardDependencies(nodeId);
         return ResponseEntity.ok().body(backwardDependencyNodes);
     }
-    
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/data/{name}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<String> writeBinaryData(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
     		@PathVariable("name") String name,
                                     InputStream is) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB:: writeBinaryData:"+name);
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         try (OutputStream os = storage.writeBinaryData(nodeId, name)) {
             if (os == null) {
@@ -211,7 +181,6 @@ public class AppStorageServerSB {
             throw new UncheckedIOException(e);
         }
     }
-
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/data", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getDataNames(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId) {
@@ -219,7 +188,6 @@ public class AppStorageServerSB {
         Set<String> dataNames = storage.getDataNames(nodeId);
         return ResponseEntity.ok().body(dataNames);
     }    
-    
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/dependencies/{name}/{toNodeId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> addDependency(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
@@ -229,7 +197,6 @@ public class AppStorageServerSB {
         storage.addDependency(nodeId, name, toNodeId);
         return ResponseEntity.ok().build();
     }
-
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/dependencies/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<NodeInfo>> getDependencies(@PathVariable("fileSystemName") String fileSystemName,
     								@PathVariable("nodeId") String nodeId,
@@ -238,7 +205,6 @@ public class AppStorageServerSB {
         Set<NodeInfo> dependencies = storage.getDependencies(nodeId, name);
         return ResponseEntity.ok().body(dependencies);
     }
-
     @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/dependencies/{name}/{toNodeId}")
     public ResponseEntity<String> removeDependency(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
@@ -248,7 +214,6 @@ public class AppStorageServerSB {
         storage.removeDependency(nodeId, name, toNodeId);
         return ResponseEntity.ok().build();
     }
-    
     @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/nodes/{nodeId}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deleteNode(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId) {
@@ -256,12 +221,10 @@ public class AppStorageServerSB {
         String parentNodeId = storage.deleteNode(nodeId);
         return ResponseEntity.ok().body(parentNodeId);
     }
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/data/{name}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<InputStreamResource> readBinaryAttribute(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
     		@PathVariable("name") String name) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB:: readBinaryAttribute:"+name);
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         Optional<InputStream> is = storage.readBinaryData(nodeId, name);
         
@@ -270,7 +233,6 @@ public class AppStorageServerSB {
         }
         return ResponseEntity.noContent().build();
     }   
-
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/data/{name}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> dataExists(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
@@ -279,7 +241,6 @@ public class AppStorageServerSB {
         boolean exists = storage.dataExists(nodeId, name);
         return ResponseEntity.ok().body(Boolean.toString(exists));
     }
-    
     @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/data/{name}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> removeData(@PathVariable("fileSystemName") String fileSystemName,
     		@PathVariable("nodeId") String nodeId,
@@ -298,12 +259,9 @@ public class AppStorageServerSB {
         storage.createTimeSeries(nodeId, metadata);
         return ResponseEntity.ok().build();
     }
-
-    //@Compress
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/name", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<String>> getTimeSeriesNames(@PathVariable("fileSystemName") String fileSystemName,
                                        @PathVariable("nodeId") String nodeId) {
-    	//System.out.println("############################################## +++++++++++++++++++++++++++++++++++++++++++ AppStorageServerSB:: getTimeSeriesNames");
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         Set<String> timeSeriesNames = storage.getTimeSeriesNames(nodeId);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_ENCODING, "gzip").body(timeSeriesNames);
@@ -316,8 +274,6 @@ public class AppStorageServerSB {
         boolean exists = storage.timeSeriesExists(nodeId, timeSeriesName);
         return  ResponseEntity.ok().body(Boolean.toString(exists));
     }
-    
-    //@Compress
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/metadata", produces = MediaType.APPLICATION_JSON_VALUE, consumes=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<TimeSeriesMetadata>> getTimeSeriesMetadata(@PathVariable("fileSystemName") String fileSystemName,
                                           @PathVariable("nodeId") String nodeId,
@@ -326,7 +282,6 @@ public class AppStorageServerSB {
         List<TimeSeriesMetadata> metadataList = storage.getTimeSeriesMetadata(nodeId, timeSeriesNames);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_ENCODING, "gzip").body(metadataList);
     }
-    
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/versions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<Integer>> getTimeSeriesDataVersions(@PathVariable("fileSystemName") String fileSystemName,
                                               @PathVariable("nodeId") String nodeId) {
@@ -342,8 +297,6 @@ public class AppStorageServerSB {
         Set<Integer> versions = storage.getTimeSeriesDataVersions(nodeId, timeSeriesName);
         return ResponseEntity.ok().body(versions);
     }
-    
-    //@Compress
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/double/{version}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<DoubleArrayChunk>>> getDoubleTimeSeriesData(@PathVariable("fileSystemName") String fileSystemName,
                                             @PathVariable("nodeId") String nodeId,
@@ -355,7 +308,6 @@ public class AppStorageServerSB {
                 .header(HttpHeaders.CONTENT_ENCODING, "gzip")
                 .body(timeSeriesData);
     }
-    //@Compress
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/string/{version}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<StringArrayChunk>>> getStringTimeSeriesData(@PathVariable("fileSystemName") String fileSystemName,
                                             @PathVariable("nodeId") String nodeId,
@@ -367,7 +319,6 @@ public class AppStorageServerSB {
                 .header(HttpHeaders.CONTENT_ENCODING, "gzip")
                 .body(timeSeriesData);
     }
-
     @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries")
     public ResponseEntity<String> clearTimeSeries(@PathVariable("fileSystemName") String fileSystemName,
                                     @PathVariable("nodeId") String nodeId) {
@@ -375,7 +326,6 @@ public class AppStorageServerSB {
         storage.clearTimeSeries(nodeId);
         return ResponseEntity.ok().build();
     }
-    
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/parent", consumes = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> setParentNode(@PathVariable("fileSystemName") String fileSystemName,
                                   @PathVariable("nodeId") String nodeId,

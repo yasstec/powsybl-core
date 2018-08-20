@@ -4,26 +4,22 @@ import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.inject.Singleton;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 
 import com.powsybl.afs.AfsException;
 import com.powsybl.afs.AppData;
-//import com.powsybl.afs.AppData;
 import com.powsybl.afs.AppFileSystem;
 import com.powsybl.afs.ProjectFile;
 import com.powsybl.afs.storage.ListenableAppStorage;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.DefaultComputationManagerConfig;
-@Configuration
+
+//@Configuration
 @Profile("default")
 @Component
-//@Repository
-@Singleton
 public class AppDataBeanSB {
 	
     protected AppData appData;

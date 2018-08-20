@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
-import javax.websocket.Session;
+
 import javax.websocket.WebSocketContainer;
 
 import java.io.IOException;
@@ -48,8 +48,7 @@ public class RemoteListenableAppStorageSB extends ForwardingAppStorage implement
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         System.out.println("WebSocketContainer " + container +  "    endPointUri : "+ endPointUri);
         try {
-            Session ss = container.connectToServer(new NodeEventClient(storage.getFileSystemName(), listeners), endPointUri);
-            //System.out.println("WebSocketContainer 2 " + container +  "    endPointUri : "+ endPointUri + " :: Open : " + ss.isOpen() + ss.getId());
+            container.connectToServer(new NodeEventClient(storage.getFileSystemName(), listeners), endPointUri);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (DeploymentException e) {
