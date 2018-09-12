@@ -6,8 +6,6 @@
  */
 package com.powsybl.afs.ws.server.sb.utils;
 
-import org.springframework.context.annotation.Configuration;
-
 import com.powsybl.afs.storage.events.NodeEventList;
 import com.powsybl.afs.ws.utils.JacksonEncoder;
 

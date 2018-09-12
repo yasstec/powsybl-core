@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.utils;
+package com.powsybl.afs.ws.server.sb;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +23,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.io.ByteStreams;
+import com.powsybl.afs.AfsException;
+import com.powsybl.afs.AppFileSystem;
+import com.powsybl.afs.ProjectFile;
+import com.powsybl.afs.TaskMonitor;
 import com.powsybl.afs.storage.AppStorage;
 import com.powsybl.afs.storage.NodeDependency;
 import com.powsybl.afs.storage.NodeGenericMetadata;
@@ -32,18 +36,17 @@ import com.powsybl.afs.storage.buffer.StorageChange;
 import com.powsybl.afs.storage.buffer.StorageChangeSet;
 import com.powsybl.afs.storage.buffer.StringTimeSeriesChunksAddition;
 import com.powsybl.afs.storage.buffer.TimeSeriesCreation;
+import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
 import com.powsybl.math.timeseries.DoubleArrayChunk;
 import com.powsybl.math.timeseries.StringArrayChunk;
 import com.powsybl.math.timeseries.TimeSeriesMetadata;
 
 @RestController
 @RequestMapping(value="/rest/afs/v1")
-//@ComponentScan(basePackageClasses = {JsonProviderSB.class})
 public class AppStorageServerSB {
 	@Autowired(required=true)
     private AppDataBeanSB appDataBean;
 
-    //@GetMapping("fileSystems")
 	@RequestMapping(method = RequestMethod.GET, value = "fileSystems")
     public List<String> getFileSystemNames() {
         return appDataBean.getAppDataSB().getRemotelyAccessibleFileSystemNames();
@@ -172,7 +175,7 @@ public class AppStorageServerSB {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         try (OutputStream os = storage.writeBinaryData(nodeId, name)) {
             if (os == null) {
-            	return ResponseEntity.noContent().build();
+            	return ResponseEntity.ok().build();
             } else {
                 ByteStreams.copy(is, os);
                 return ResponseEntity.ok().build();
@@ -332,6 +335,40 @@ public class AppStorageServerSB {
                                   @RequestBody String newParentNodeId) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         storage.setParentNode(nodeId, newParentNodeId);
+        return ResponseEntity.ok().build();
+    }
+    
+    @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TaskMonitor.Snapshot> takeSnapshot(@PathVariable("fileSystemName") String fileSystemName,
+    		@RequestParam("projectId") String projectId) {
+        AppFileSystem fileSystem = appDataBean.getFileSystem(fileSystemName);
+        TaskMonitor.Snapshot snapshot = fileSystem.getTaskMonitor().takeSnapshot(projectId);
+        return ResponseEntity.ok().body(snapshot);
+    } 
+    @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TaskMonitor.Task> startTask(@PathVariable("fileSystemName") String fileSystemName,
+    		@RequestParam("projectFileId") String projectFileId) {
+        AppFileSystem fileSystem = appDataBean.getFileSystem(fileSystemName);
+        ProjectFile projectFile = fileSystem.findProjectFile(projectFileId, ProjectFile.class);
+        if (projectFile == null) {
+            throw new AfsException("Project file '" + projectFileId + "' not found in file system '" + fileSystemName + "'");
+        }
+        TaskMonitor.Task task = fileSystem.getTaskMonitor().startTask(projectFile);
+        return ResponseEntity.ok().body(task);
+    }
+    @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/tasks/{taskId}", consumes = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> updateTaskMessage(@PathVariable("fileSystemName") String fileSystemName,
+                                      @PathVariable("taskId") UUID taskId,
+                                      @RequestBody String message) {
+        AppFileSystem fileSystem = appDataBean.getFileSystem(fileSystemName);
+        fileSystem.getTaskMonitor().updateTaskMessage(taskId, message);
+        return ResponseEntity.ok().build();
+    }
+    @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/tasks/{taskId}")
+    public ResponseEntity<String> stopTask(@PathVariable("fileSystemName") String fileSystemName,
+                             @PathVariable("taskId") UUID taskId) {
+        AppFileSystem fileSystem = appDataBean.getFileSystem(fileSystemName);
+        fileSystem.getTaskMonitor().stopTask(taskId);
         return ResponseEntity.ok().build();
     }
 }

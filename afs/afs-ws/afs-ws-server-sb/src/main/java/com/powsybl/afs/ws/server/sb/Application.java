@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.utils;
+package com.powsybl.afs.ws.server.sb;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

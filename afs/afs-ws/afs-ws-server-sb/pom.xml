@@ -4,26 +4,26 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.powsybl</groupId>
-		<artifactId>powsybl-afs-ws</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>com.powsybl</groupId>
+        <artifactId>powsybl-afs-ws</artifactId>
+        <version>2.1.0-SNAPSHOT</version>
+    </parent>
+
 
 	<artifactId>powsybl-afs-ws-server-sb</artifactId>
 	<name>AFS WS Server SpringBoot</name>
 	<description>AFS WS Server SpringBoot</description>
 
-	<!---->
 	<dependencyManagement>
 		<dependencies>
-<!-- 			<dependency>
+ 			<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-releasetrain</artifactId>
-				<version>Kay-SR9</version>
+				<version>Fowler-SR2</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>-->
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -48,167 +48,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
-
-<!-- 
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>webjars-locator-core</artifactId>
-        </dependency>
 		<dependency>
-  			<groupId>org.webjars</groupId>
-  			<artifactId>webjars-locator</artifactId>
-  			<version>LATEST</version>
-		</dependency>        
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>sockjs-client</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>stomp-websocket</artifactId>
-            <version>2.3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>bootstrap</artifactId>
-            <version>3.3.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>jquery</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-        -->				
-<!--        <dependency>
-    		<groupId>javax.enterprise</groupId>
-    		<artifactId>cdi-api</artifactId>
-    		<version>2.0</version>
-    		<scope>provided</scope>
-		</dependency>-->
-    	<!-- <dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-			<version>2.1</version>
-		</dependency>-->
-				        
-	 	<!-- <dependency>
-			<groupId>com.jayway.jsonpath</groupId>
-			<artifactId>json-path</artifactId>
-			<scope>test</scope>
-		</dependency>-->
-		<!--<dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.9.4</version>
-        </dependency>-->        
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
         
-		<dependency>
-        	<groupId>com.powsybl</groupId>
-        	<version>1.2.0-SNAPSHOT</version>
-    		<artifactId>powsybl-afs-ws-storage</artifactId>
-		</dependency>         
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-        	<groupId>com.rte_france.powsybl</groupId>
-        	<version>1.2.0-SNAPSHOT</version>
-			<artifactId>powsybl-computation-slurm</artifactId>
-    		<scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-utils</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-server-utils</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- RunTime -->
- 	<dependency>
-			<groupId>com.rte_france.powsybl</groupId>
-			<version>1.2.0-SNAPSHOT</version>
-			<artifactId>powsybl-afs-cassandra</artifactId>
-			<scope>runtime</scope>
-		</dependency>
- 	<!-- <dependency>
-        	<groupId>com.rte_france.imagrid</groupId>
-        	<version>1.0.0-SNAPSHOT</version>
-    		<artifactId>imagrid-antares-util</artifactId>
-    		<scope>runtime</scope>
-		</dependency>-->
-		<!-- 
- 		<dependency>
-        	<groupId>com.rte_france.imagrid</groupId>
-        	<version>1.0.0-SNAPSHOT</version>
-    		<artifactId>imagrid-time-series-store-afs-local</artifactId>
-    		<scope>runtime</scope>
-		</dependency>-->
-		<dependency>
-        	<groupId>com.powsybl</groupId>
-        	<version>1.2.0-SNAPSHOT</version>
-    		<artifactId>powsybl-afs-mapdb-storage</artifactId>
-    		<scope>runtime</scope>
-		</dependency>
-		
-		
-<!-- 	<dependency>
-	    	<groupId>com.rte_france.imagrid</groupId>
-        	<version>1.0.0-SNAPSHOT</version>
-    		<artifactId>imagrid-aaa-integration</artifactId>
-    	</dependency>-->
-
-		<dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-server</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-		<dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-server</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-		 
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-server-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.powsybl</groupId>
-        	<version>1.2.0-SNAPSHOT</version>
-    		<artifactId>powsybl-afs-mapdb</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ws-storage</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
-        
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-storage-api</artifactId>
@@ -216,68 +66,50 @@
             <type>test-jar</type>
             <scope>test</scope>
     	</dependency>
-
-        <!-- Compilation dependencies -->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-        </dependency>
-        <!-- 
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-jaxrs</artifactId>
-        </dependency>-->
-  	    <dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.4</version>
-		</dependency>
-<dependency>
-    <groupId>com.fasterxml.jackson.module</groupId>
-    <artifactId>jackson-module-kotlin</artifactId>
-    <version>2.9.4</version>
-</dependency>
-
-
-		<dependency>
-    		<groupId>org.mockito</groupId>
-    		<artifactId>mockito-core</artifactId>
+    	<dependency>
+        	<groupId>${project.groupId}</groupId>
+        	<version>${project.version}</version>
+    		<artifactId>powsybl-afs-mapdb-storage</artifactId>
     		<scope>test</scope>
 		</dependency>
-
-		<!--<dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava-testlib</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.jimfs</groupId>
-            <artifactId>jimfs</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <scope>test</scope>
-        </dependency>
+    	    	
 		<dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-
--->        
+		   	<groupId>${project.groupId}</groupId>
+	       	<version>${project.version}</version>
+	    	<artifactId>powsybl-afs-ws-server-utils</artifactId>
+		</dependency>    	    	
+    	    	
+        <!-- RunTime -->
         <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-            <scope>test</scope>
+            <groupId>com.rte_france.powsybl</groupId>
+            <artifactId>powsybl-computation-slurm</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>    	
+        <dependency>
+            <groupId>com.rte_france.powsybl</groupId>
+            <artifactId>powsybl-afs-cassandra</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
 
+        <!-- Compilation dependencies -->
+		<dependency>
+		    <groupId>com.fasterxml.jackson.module</groupId>
+		    <artifactId>jackson-module-kotlin</artifactId>
+		    <version>2.9.6</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.6</version>
+		</dependency>
+ 		<dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>3.2.0</version>
+        </dependency>
 	</dependencies>
 
 	<properties>
@@ -315,17 +147,5 @@
     		</plugin>
 		</plugins>
 	</build>
-<!-- <repositories>
-		<repository>
-			<id>spring-releases</id>
-			<url>https://repo.spring.io/libs-release</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-releases</id>
-			<url>https://repo.spring.io/libs-release</url>
-		</pluginRepository>
-	</pluginRepositories>-->
 
 </project>

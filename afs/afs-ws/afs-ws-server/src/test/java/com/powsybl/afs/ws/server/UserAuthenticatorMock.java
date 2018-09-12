@@ -6,12 +6,18 @@
  */
 package com.powsybl.afs.ws.server;
 
+
+import javax.annotation.Priority;
+import javax.enterprise.inject.Alternative;
+
 import com.powsybl.afs.ws.server.utils.UserAuthenticator;
 import com.powsybl.afs.ws.utils.UserProfile;
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
+@Alternative
+@Priority(1)
 public class UserAuthenticatorMock implements UserAuthenticator {
 
     @Override

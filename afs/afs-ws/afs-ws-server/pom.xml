@@ -20,6 +20,7 @@
     <artifactId>powsybl-afs-ws-server</artifactId>
     <name>AFS WS Server</name>
     <description>AFS WS Server</description>
+    <packaging>war</packaging>
 
     <dependencies>
         <!-- Provided dependencies -->
@@ -105,6 +106,53 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+		
+		
+		<!-- ..... -->
+		<!-- Runtime dependencies ++ -->
+        <dependency>
+            <groupId>com.rte_france.powsybl</groupId>
+            <artifactId>powsybl-afs-cassandra</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rte_france.powsybl</groupId>
+            <artifactId>powsybl-rte-commons</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rte_france.imagrid</groupId>
+            <artifactId>imagrid-antares-util</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rte_france.imagrid</groupId>
+            <artifactId>imagrid-time-series-store-afs-local</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rte_france.powsybl</groupId>
+            <artifactId>powsybl-computation-slurm</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rte_france.imagrid</groupId>
+            <artifactId>imagrid-aaa-integration</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>       
+
+        <!-- Provided dependencies ++ -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
     </dependencies>
 
     <build>
@@ -148,6 +196,27 @@
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>
             </plugin>
+            
+            <!-- WildFly plugin to deploy the application -->
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                 <version>1.2.0.Final</version>
+                <configuration>
+                    <filename>${project.build.finalName}.war</filename>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>            
+
+            
+            
         </plugins>
     </build>
 </project>

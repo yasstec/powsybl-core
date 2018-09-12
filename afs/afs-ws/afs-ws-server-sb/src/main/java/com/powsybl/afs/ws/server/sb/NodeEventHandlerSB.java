@@ -1,7 +1,4 @@
-package com.powsybl.afs.ws.server.sb.utils;
-
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+package com.powsybl.afs.ws.server.sb;
 
 import javax.websocket.EncodeException;
 import javax.websocket.RemoteEndpoint;
@@ -17,16 +14,13 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.powsybl.afs.storage.ListenableAppStorage;
 import com.powsybl.afs.storage.events.AppStorageListener;
-
-
-
+import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
+import com.powsybl.afs.ws.server.sb.utils.NodeEventListEncoder;
 
 public class NodeEventHandlerSB extends TextWebSocketHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NodeEventServerSB.class);
-	List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
-	
-    private final AppDataBeanSB appDataBean;
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServerSB.class);
 
+	private final AppDataBeanSB appDataBean;
     private final WebSocketContextSB webSocketContext;
     
 	public NodeEventHandlerSB(AppDataBeanSB appDataBean, WebSocketContextSB webSocketContext) {
@@ -46,7 +40,8 @@ public class NodeEventHandlerSB extends TextWebSocketHandler {
                 RemoteEndpoint.Async remote = ((StandardWebSocketSession) session).getNativeSession().getAsyncRemote();
                 remote.setSendTimeout(1000);
                 try {
-					remote.sendText(new NodeEventListEncoder().encode(eventList), result -> {
+                	String eventListEncode =new NodeEventListEncoder().encode(eventList); 
+					remote.sendText(eventListEncode, result -> {
 					    if (!result.isOK()) {
 					        LOGGER.error(result.getException().toString(), result.getException());
 					    }

@@ -17,7 +17,7 @@ import java.util.Objects;
 public class SecurityConfig {
 
     private static final long DEFAULT_TOKEN_VALIDITY = 3600L; // minutes
-    private static final boolean DEFAULT_SKIP_TOKEN_VALIDITY_CHECK = true;
+    private static final boolean DEFAULT_SKIP_TOKEN_VALIDITY_CHECK = false;
 
     private long tokenValidity;
 

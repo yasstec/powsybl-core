@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.utils;
+package com.powsybl.afs.ws.server.sb;
 
 import java.util.Map;
 
@@ -19,14 +19,13 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-
+import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
 import com.powsybl.afs.ws.utils.AfsRestApi;
 
 @Configuration
 @EnableWebSocket
-
-public class NodeEventServerSB   implements WebSocketConfigurer  {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NodeEventServerSB.class);
+public class WebSocketServerSB   implements WebSocketConfigurer  {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServerSB.class);
 	
     @Autowired(required=true)
     private AppDataBeanSB appDataBean;
@@ -36,25 +35,20 @@ public class NodeEventServerSB   implements WebSocketConfigurer  {
     
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(traiter(), "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + "/node_events/{fileSystemName}")
+		registry
+		.addHandler(new NodeEventHandlerSB(appDataBean, webSocketContext),  "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + "/node_events/{fileSystemName}")
+		.addHandler(new TaskEventHandlerSB(appDataBean, webSocketContext), "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + "/task_events/{fileSystemName}/{projectId}")
 		.setAllowedOrigins("*")
 		.addInterceptors(new UriTemplateHandshakeInterceptor())
 		;
 	}
 	
-    @Bean
-    public WebSocketHandler traiter() {
-        return new NodeEventHandlerSB(appDataBean, webSocketContext);
-    }
-
     private class UriTemplateHandshakeInterceptor implements HandshakeInterceptor {
     	@Override
     	public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
     		HttpServletRequest origRequest =((ServletServerHttpRequest) request).getServletRequest();
-    		
     		/* Retrieve template variables */
     		Map<String, String> uriTemplateVars =(Map<String, String>) origRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
     		/* Put template variables into WebSocket session attributes */
     		if (uriTemplateVars != null) {
     			attributes.putAll(uriTemplateVars);
