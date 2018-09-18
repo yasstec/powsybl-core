@@ -20,7 +20,7 @@
     <artifactId>powsybl-afs-ws-server</artifactId>
     <name>AFS WS Server</name>
     <description>AFS WS Server</description>
-    <packaging>war</packaging>
+    <!-- <packaging>war</packaging>-->
 
     <dependencies>
         <!-- Provided dependencies -->
@@ -110,6 +110,7 @@
 		
 		<!-- ..... -->
 		<!-- Runtime dependencies ++ -->
+		<!-- 
         <dependency>
             <groupId>com.rte_france.powsybl</groupId>
             <artifactId>powsybl-afs-cassandra</artifactId>
@@ -120,6 +121,7 @@
             <groupId>com.rte_france.powsybl</groupId>
             <artifactId>powsybl-rte-commons</artifactId>
             <version>2.1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.rte_france.imagrid</groupId>
@@ -144,7 +146,8 @@
             <artifactId>imagrid-aaa-integration</artifactId>
             <version>1.1.0-SNAPSHOT</version>
             <scope>runtime</scope>
-        </dependency>       
+        </dependency>
+        -->       
 
         <!-- Provided dependencies ++ -->
         <dependency>

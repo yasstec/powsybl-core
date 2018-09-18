@@ -37,9 +37,9 @@ import com.powsybl.afs.storage.buffer.StorageChangeSet;
 import com.powsybl.afs.storage.buffer.StringTimeSeriesChunksAddition;
 import com.powsybl.afs.storage.buffer.TimeSeriesCreation;
 import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
-import com.powsybl.math.timeseries.DoubleArrayChunk;
-import com.powsybl.math.timeseries.StringArrayChunk;
-import com.powsybl.math.timeseries.TimeSeriesMetadata;
+import com.powsybl.timeseries.DoubleArrayChunk;
+import com.powsybl.timeseries.StringArrayChunk;
+import com.powsybl.timeseries.TimeSeriesMetadata;
 
 @RestController
 @RequestMapping(value="/rest/afs/v1")

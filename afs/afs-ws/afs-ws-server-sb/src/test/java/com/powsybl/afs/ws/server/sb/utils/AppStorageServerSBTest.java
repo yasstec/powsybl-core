@@ -1,6 +1,7 @@
 package com.powsybl.afs.ws.server.sb.utils;
 
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,6 +15,7 @@ import javax.servlet.ServletContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.env.Environment;
@@ -42,6 +44,10 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
 	
 	private UserSession userSession;
 	
+	//@Value("${server.ssl.key-store}")
+	//private String sslKeyStore;
+	
+	
     @Override
     public void setUp() throws Exception {
         userSession = ClientUtils.authenticate(getRestUri(), "", "");
@@ -49,7 +55,12 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
     }
     private URI getRestUri() {
         try {
-            return new URI("http://localhost:"+port+servletContext.getContextPath().toString());
+        	//System.out.println(sslKeyStore);
+        	String sheme = "http";
+        	/*if (sslKeyStore != null && new File(sslKeyStore).exists()) {
+        		sheme = "https";
+        	}*/
+            return new URI(sheme + "://localhost:"+port+servletContext.getContextPath().toString());
         } catch (URISyntaxException e) {
             throw new UncheckedUriSyntaxException(e);
 		}
