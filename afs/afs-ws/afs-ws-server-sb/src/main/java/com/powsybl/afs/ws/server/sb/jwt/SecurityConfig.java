@@ -29,13 +29,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     	http.csrf()
 					.ignoringAntMatchers("/rest/users/login")
 					.ignoringAntMatchers("/rest/afs/v1/fileSystems/**/*")
-
     				;
 
         String[] patterns = new String[] {
             	"/rest/users/login",
-            	"/messages/**/*"
-
+            	"/messages/**/*",
+				"/v2/api-docs",
+				"/swagger-ui.html",
+				"/webjars/**/*",
+				"/swagger-resources/**/*",
+				"/swagger-resources",
+				"/index.html"
         };
         http.authorizeRequests()
                 .antMatchers(patterns)
