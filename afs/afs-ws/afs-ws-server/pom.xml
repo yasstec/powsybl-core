@@ -199,27 +199,17 @@
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                 </configuration>
             </plugin>
-            
-            <!-- WildFly plugin to deploy the application -->
-            <plugin>
-                <groupId>org.wildfly.plugins</groupId>
-                <artifactId>wildfly-maven-plugin</artifactId>
-                 <version>1.2.0.Final</version>
-                <configuration>
-                    <filename>${project.build.finalName}.war</filename>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.2</version>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>com.powsybl.afs.ws.server</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
-            </plugin>            
-
-            
-            
+            </plugin>
         </plugins>
     </build>
 </project>
