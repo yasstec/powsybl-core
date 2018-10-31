@@ -14,8 +14,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.powsybl.afs.storage.ListenableAppStorage;
 import com.powsybl.afs.storage.events.AppStorageListener;
-import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
-import com.powsybl.afs.ws.server.sb.utils.NodeEventListEncoder;
+import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
+import com.powsybl.afs.ws.server.utils.sb.NodeEventListEncoder;
 
 public class NodeEventHandlerSB extends TextWebSocketHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketServerSB.class);

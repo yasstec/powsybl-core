@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.jwt;
+package com.powsybl.afs.ws.server.utils.sb.jwt;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

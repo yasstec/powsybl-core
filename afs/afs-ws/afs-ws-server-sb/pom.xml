@@ -10,7 +10,6 @@
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-
 	<artifactId>powsybl-afs-ws-server-sb</artifactId>
 	<name>AFS WS Server SpringBoot</name>
 	<description>AFS WS Server SpringBoot</description>
@@ -38,29 +37,21 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<!-- -->
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<!-- <scope>provided</scope>-->
 		</dependency>
        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
-            <!-- <scope>provided</scope>-->
         </dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-			<!-- <scope>provided</scope>-->
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
         
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -76,32 +67,15 @@
     	</dependency>
     	<dependency>
         	<groupId>${project.groupId}</groupId>
-        	<version>${project.version}</version>
     		<artifactId>powsybl-afs-mapdb-storage</artifactId>
+        	<version>${project.version}</version>
     		<scope>test</scope>
 		</dependency>
-    	    	
-		<dependency>
-		   	<groupId>${project.groupId}</groupId>
+ 		<dependency>
+			<groupId>${project.groupId}</groupId>
 	       	<version>${project.version}</version>
-	    	<artifactId>powsybl-afs-ws-server-utils</artifactId>
-		</dependency>    	    	
-    	    	
-        <!-- RunTime -->
-        <!-- 
-        <dependency>
-            <groupId>com.rte_france.powsybl</groupId>
-            <artifactId>powsybl-computation-slurm</artifactId>
-            <version>2.2.0-SNAPSHOT</version>
-            <scope>runtime</scope>
-        </dependency>    	
-        <dependency>
-            <groupId>com.rte_france.powsybl</groupId>
-            <artifactId>powsybl-afs-cassandra</artifactId>
-            <version>2.2.0-SNAPSHOT</version>
-            <scope>runtime</scope>
-        </dependency>
-        -->
+  			<artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
+      	</dependency>
 
         <!-- Compilation dependencies -->
         <dependency>
@@ -126,51 +100,15 @@
 			<artifactId>jackson-core</artifactId>
 			<version>2.9.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
 			<version>2.6.1</version>
-<!-- 		<scope>compile</scope>-->
 		</dependency>
-		
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.6.1</version>
-<!-- 			<scope>compile</scope>-->
 		</dependency>
-        
 	</dependencies>
-
-<!-- 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
-			<plugin>
-      			<groupId>org.apache.maven.plugins</groupId>
-      			<artifactId>maven-source-plugin</artifactId>
-      			<executions>
-        			<execution>
-          				<id>attach-sources</id>
-          				<goals>
-            				<goal>jar</goal>
-          				</goals>
-        			</execution>
-      			</executions>
-    		</plugin>
-		</plugins>
-	</build>
--->
 </project>

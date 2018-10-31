@@ -1,7 +1,8 @@
-package com.powsybl.afs.ws.server.sb;
+package com.powsybl.afs.network.server.sb;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication

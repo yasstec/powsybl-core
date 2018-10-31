@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.jwt;
+package com.powsybl.afs.ws.server.utils.sb.jwt;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
-import com.powsybl.afs.ws.server.sb.jwt.exceptions.JwtAuthenticationException;
+import com.powsybl.afs.ws.server.utils.sb.jwt.exceptions.JwtAuthenticationException;
 
 import java.util.Optional;
 

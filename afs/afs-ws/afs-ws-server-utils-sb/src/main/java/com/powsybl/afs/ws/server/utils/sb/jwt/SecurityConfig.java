@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.jwt;
+package com.powsybl.afs.ws.server.utils.sb.jwt;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

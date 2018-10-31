@@ -21,9 +21,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.powsybl.afs.AppFileSystem;
 import com.powsybl.afs.TaskEvent;
 import com.powsybl.afs.TaskListener;
-import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
-import com.powsybl.afs.ws.server.sb.utils.TaskEventEncoder;
-//import com.powsybl.afs.storage.ListenableAppStorage;
+import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
+import com.powsybl.afs.ws.server.utils.sb.TaskEventEncoder;
 import com.powsybl.afs.ws.storage.TaskEventDecoder;
 
 public class TaskEventHandlerSB extends TextWebSocketHandler {

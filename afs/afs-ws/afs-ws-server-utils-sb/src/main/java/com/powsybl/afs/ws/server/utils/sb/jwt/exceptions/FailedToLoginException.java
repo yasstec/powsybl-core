@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.jwt.exceptions;
+package com.powsybl.afs.ws.server.utils.sb.jwt.exceptions;
 
 import static java.lang.String.format;
 

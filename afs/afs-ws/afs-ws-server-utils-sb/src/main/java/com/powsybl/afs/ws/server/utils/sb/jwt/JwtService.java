@@ -1,4 +1,4 @@
-package com.powsybl.afs.ws.server.sb.jwt;
+package com.powsybl.afs.ws.server.utils.sb.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.CompressionCodecs;
@@ -13,20 +13,17 @@ import com.powsybl.afs.ws.server.utils.KeyGenerator;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Key;
-import java.time.LocalDateTime;
+
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.Optional;
-
-import static java.time.ZoneOffset.UTC;
 
 @Component
 public class JwtService {
-    private static final String ISSUER = "com.powsybl.afs.ws.server.sb.jwt";
+    private static final String ISSUER = "com.powsybl.afs.ws.server.utils.sb.jwt";
     public static final String USERNAME = "username";
 
 	@Autowired
-    private KeyGenerator keyGenerator;
+	private KeyGenerator keyGenerator;
 
     public String tokenFor(String login, long tokenValidity)  throws IOException, URISyntaxException {
         Key key = keyGenerator.generateKey();

@@ -44,10 +44,6 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
 	
 	private UserSession userSession;
 	
-	//@Value("${server.ssl.key-store}")
-	//private String sslKeyStore;
-	
-	
     @Override
     public void setUp() throws Exception {
         userSession = ClientUtils.authenticate(getRestUri(), "", "");
@@ -55,11 +51,7 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
     }
     private URI getRestUri() {
         try {
-        	//System.out.println(sslKeyStore);
         	String sheme = "http";
-        	/*if (sslKeyStore != null && new File(sslKeyStore).exists()) {
-        		sheme = "https";
-        	}*/
             return new URI(sheme + "://localhost:"+port+servletContext.getContextPath().toString());
         } catch (URISyntaxException e) {
             throw new UncheckedUriSyntaxException(e);

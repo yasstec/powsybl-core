@@ -19,7 +19,7 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
+import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
 import com.powsybl.afs.ws.utils.AfsRestApi;
 
 @Configuration

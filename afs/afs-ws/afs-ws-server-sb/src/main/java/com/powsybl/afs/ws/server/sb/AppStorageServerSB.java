@@ -36,7 +36,7 @@ import com.powsybl.afs.storage.buffer.StorageChange;
 import com.powsybl.afs.storage.buffer.StorageChangeSet;
 import com.powsybl.afs.storage.buffer.StringTimeSeriesChunksAddition;
 import com.powsybl.afs.storage.buffer.TimeSeriesCreation;
-import com.powsybl.afs.ws.server.sb.utils.AppDataBeanSB;
+import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
 import com.powsybl.afs.ws.utils.AfsRestApi;
 import com.powsybl.timeseries.DoubleArrayChunk;
 import com.powsybl.timeseries.StringArrayChunk;
@@ -59,7 +59,7 @@ public class AppStorageServerSB {
     @ApiOperation (value = "Get file system list", response = List.class)
     @ApiResponses (value = {@ApiResponse(code = 200, message = "The list of available file systems"), @ApiResponse(code = 404, message = "There is no file system available.")})
     public List<String> getFileSystemNames() {
-        return appDataBean.getAppDataSB().getRemotelyAccessibleFileSystemNames();
+        return appDataBean.getAppData().getRemotelyAccessibleFileSystemNames();
     }
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/rootNode", produces = "application/json")
     @ApiOperation (value = "Get file system root node and create it if not exist", response = NodeInfo.class)
@@ -69,7 +69,7 @@ public class AppStorageServerSB {
     		@ApiParam(value = "Root node pseudo class") @RequestParam("nodePseudoClass") String nodePseudoClass) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         NodeInfo rootNodeInfo = storage.createRootNodeIfNotExists(nodeName, nodePseudoClass);
-        return ResponseEntity.ok()./*accepted().headers(headers).*/body(rootNodeInfo);
+        return ResponseEntity.ok().body(rootNodeInfo);
     }
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/flush", consumes= "application/json")
     @ApiOperation (value = "")
@@ -156,6 +156,16 @@ public class AppStorageServerSB {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         NodeInfo newNodeInfo =  storage.createNode(nodeId, childName, nodePseudoClass, description, version, nodeMetadata);
         return ResponseEntity.ok().body(newNodeInfo);
+    }
+    @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/name")
+    @ApiOperation (value = "Rename Node")
+    @ApiResponses (value = {@ApiResponse(code = 200, message = "The node is renamed"), @ApiResponse(code = 500, message = "Error")})
+    public ResponseEntity<String> renameNode(@ApiParam(value = "File system name") @PathVariable("fileSystemName") String fileSystemName,
+    		@ApiParam(value = "Node ID") @PathVariable("nodeId") String nodeId,
+    		@ApiParam(value = "New node's name") @RequestBody String name) {
+        AppStorage storage = appDataBean.getStorage(fileSystemName);
+        storage.renameNode(nodeId, name);
+        return ResponseEntity.ok().build();
     }
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/children/{childName}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation (value = "Get Child Node", response = NodeInfo.class)
