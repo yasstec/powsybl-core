@@ -27,13 +27,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
     	http.csrf()
-					.ignoringAntMatchers("/rest/users/login")
-					.ignoringAntMatchers("/rest/afs/v1/fileSystems/**/*")
+    				////.ignoringAntMatchers("/imagrid-authent/rest/users/login")
+    				////.ignoringAntMatchers("/rest/users/login")
+					////.ignoringAntMatchers("/**/rest/users/login")
+					//.ignoringAntMatchers("/rest/afs/v1/fileSystems/**/*")
+    				//.ignoringAntMatchers("/imagrid-server/messages/**/*")
+					.disable()
+			    	   .authorizeRequests()
     				;
 
         String[] patterns = new String[] {
+            	//"/rest/users/login",
+            	"/imagrid-authent/rest/users/login",
             	"/rest/users/login",
-            	"/messages/**/*",
+            	//"/**/rest/users/login",
+            	//"/messages/**/*",
+            	"/imagrid-server/messages/**/*",
 				"/v2/api-docs",
 				"/swagger-ui.html",
 				"/webjars/**/*",

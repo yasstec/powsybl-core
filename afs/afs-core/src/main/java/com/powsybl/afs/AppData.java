@@ -43,11 +43,11 @@ import java.util.stream.Collectors;
  */
 public class AppData implements AutoCloseable {
 
-    private final ComputationManager shortTimeExecutionComputationManager;
+    protected final ComputationManager shortTimeExecutionComputationManager;
 
     private final ComputationManager longTimeExecutionComputationManager;
 
-    private Map<String, AppFileSystem> fileSystems;
+    protected Map<String, AppFileSystem> fileSystems;
 
     private final List<AppFileSystemProvider> fileSystemProviders;
 
@@ -65,7 +65,7 @@ public class AppData implements AutoCloseable {
 
     private Map<ServiceExtension.ServiceKey, Object> services;
 
-    private SecurityTokenProvider tokenProvider = () -> null;
+    protected SecurityTokenProvider tokenProvider = () -> null;
 
     public AppData(ComputationManager shortTimeExecutionComputationManager, ComputationManager longTimeExecutionComputationManager) {
         this(shortTimeExecutionComputationManager, longTimeExecutionComputationManager,

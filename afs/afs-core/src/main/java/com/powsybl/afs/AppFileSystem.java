@@ -140,7 +140,7 @@ public class AppFileSystem implements AutoCloseable {
         return data;
     }
 
-    void setData(AppData data) {
+    public void setData(AppData data) {
         this.data = Objects.requireNonNull(data);
     }
 

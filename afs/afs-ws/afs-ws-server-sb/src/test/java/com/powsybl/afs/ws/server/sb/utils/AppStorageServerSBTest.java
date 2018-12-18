@@ -20,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
-
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import static org.junit.Assert.*;
 import com.powsybl.afs.storage.AbstractAppStorageTest;
@@ -29,6 +29,8 @@ import com.powsybl.afs.ws.client.utils.ClientUtils;
 import com.powsybl.afs.ws.client.utils.UserSession;
 import com.powsybl.afs.ws.storage.RemoteAppStorage;
 import com.powsybl.afs.ws.storage.RemoteListenableAppStorage;
+import com.powsybl.afs.ws.storage.st.RemoteAppStorageSt;
+import com.powsybl.afs.ws.storage.st.RemoteListenableAppStorageSt;
 import com.powsybl.commons.exceptions.UncheckedUriSyntaxException;
 
 @RunWith(SpringRunner.class)
@@ -42,11 +44,11 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
 	@Autowired
     private ServletContext servletContext; 
 	
-	private UserSession userSession;
+	//private UserSession userSession;
 	
     @Override
     public void setUp() throws Exception {
-        userSession = ClientUtils.authenticate(getRestUri(), "", "");
+        //userSession = ClientUtils.authenticate(getRestUri(), "", "");
         super.setUp();
     }
     private URI getRestUri() {
@@ -60,13 +62,14 @@ public class AppStorageServerSBTest extends AbstractAppStorageTest  {
     @Override
     protected ListenableAppStorage createStorage() {
     	URI restUri = getRestUri();
-        RemoteAppStorage storage = new RemoteAppStorage(AppDataBeanMockSB.TEST_FS_NAME, restUri, userSession.getToken());
-        //return new RemoteListenableAppStorageSB(storage, restUri);
-        return new RemoteListenableAppStorage(storage, restUri);
+        //RemoteAppStorage storage = new RemoteAppStorage(AppDataBeanMockSB.TEST_FS_NAME, restUri, "");//userSession.getToken());
+        //return new RemoteListenableAppStorage(storage, restUri);
+    	RemoteAppStorageSt storage = new RemoteAppStorageSt(AppDataBeanMockSB.TEST_FS_NAME, restUri, "");//userSession.getToken());
+        return new RemoteListenableAppStorageSt(storage, restUri);
     }
     @Test
     public void getFileSystemNamesTest() {
-        List<String> fileSystemNames = RemoteAppStorage.getFileSystemNames(getRestUri(), userSession.getToken());
+        List<String> fileSystemNames = RemoteAppStorage.getFileSystemNames(getRestUri(), "");//userSession.getToken());
         assertEquals(Collections.singletonList(AppDataBeanMockSB.TEST_FS_NAME), fileSystemNames);
     }
 }

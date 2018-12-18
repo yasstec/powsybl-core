@@ -30,6 +30,7 @@ import com.powsybl.afs.AppData;
 import com.powsybl.afs.mapdb.storage.MapDbAppStorage;
 import com.powsybl.afs.storage.DefaultListenableAppStorage;
 import com.powsybl.afs.storage.ListenableAppStorage;
+import com.powsybl.afs.ws.server.utils.AppDataBean;
 import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
 
 

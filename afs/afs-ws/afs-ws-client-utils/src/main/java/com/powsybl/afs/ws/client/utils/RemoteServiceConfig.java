@@ -48,7 +48,19 @@ public class RemoteServiceConfig {
             return new RemoteServiceConfig(hostName, appName, port, secure);
         });
     }
-
+    public static Optional<RemoteServiceConfig> loadAuthent() {
+        return loadAuthent(PlatformConfig.defaultConfig());
+    }
+    public static Optional<RemoteServiceConfig> loadAuthent(PlatformConfig platformConfig) {
+        Objects.requireNonNull(platformConfig);
+        return platformConfig.getOptionalModuleConfig("remote-service").map(moduleConfig -> {
+            String hostName = moduleConfig.getStringProperty("host-name-auth");
+            String appName = moduleConfig.getStringProperty("app-name-auth");
+            boolean secure = moduleConfig.getBooleanProperty("secure-auth", true);
+            int port = moduleConfig.getIntProperty("port-auth", secure ? 443 : 80);
+            return new RemoteServiceConfig(hostName, appName, port, secure);
+        });
+    }
     private static int checkPort(int port) {
         if (port <= 0) {
             throw new IllegalArgumentException("Invalid port: " + port);

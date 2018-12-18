@@ -12,30 +12,58 @@
   <name>Network cache AFS server Spring Boot</name>
   <description>Network cache AFS server Spring Boot</description>  
   
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
+  	<dependencyManagement>
+    	<dependencies>
+      		<dependency>
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-releasetrain</artifactId>
 				<version>Fowler-SR2</version>
 				<type>pom</type>
 				<scope>import</scope>
-      </dependency>
-      <dependency>
+      		</dependency>
+      		<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>2.0.4.RELEASE</version>
 				<type>pom</type>
 				<scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>  
+      		</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>Finchley.SR1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+  	</dependencyManagement>  
   
-  <dependencies>
+  	<dependencies>
+  	        <!-- Provided dependencies -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
   		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<exclusions>
+            	<exclusion>
+                	<groupId>javax.ws.rs</groupId>
+                	<artifactId>jsr311-api</artifactId>
+            	</exclusion>
+        	</exclusions>
+			<scope>provided</scope>
+        </dependency>
+
+
+				
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ext-base</artifactId>
@@ -46,15 +74,38 @@
             <artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
             <version>${project.version}</version>
         </dependency>
+		<!--<dependency>
+        	<groupId>${project.groupId}</groupId>
+        	<version>${project.version}</version>
+    		<artifactId>powsybl-afs-ws-storage</artifactId>
+		</dependency>-->        
+        <dependency>    
+        	<groupId>${project.groupId}</groupId>
+        	<version>${project.version}</version>
+    		<artifactId>powsybl-afs-ws-storage-st</artifactId>
+		</dependency>
+        <!-- <dependency>
+        	<groupId>${project.groupId}</groupId>
+    		<artifactId>powsybl-afs-ws-client-utils</artifactId>
+    		<version>${project.version}</version>
+        </dependency>
+        <dependency>
+        	<groupId>${project.groupId}</groupId>
+    		<artifactId>powsybl-afs-ws-client-cloud</artifactId>
+    		<version>${project.version}</version>
+        </dependency>-->
+        
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
 			<version>2.6.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.6.1</version>
+			<scope>provided</scope>
 		</dependency>        
         <!-- Test dependencies -->
         <dependency>

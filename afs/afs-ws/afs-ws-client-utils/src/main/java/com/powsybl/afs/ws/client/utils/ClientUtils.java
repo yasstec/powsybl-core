@@ -120,6 +120,7 @@ public final class ClientUtils {
                     .param("login", login)
                     .param("password", password);
 
+            System.out.println("===============> ClientUtils::UserSession :: baseUri : " + baseUri );
             Response response = client.target(baseUri)
                     .path("rest")
                     .path("users")
@@ -129,6 +130,7 @@ public final class ClientUtils {
             try {
                 UserProfile profile = readEntityIfOk(response, UserProfile.class);
                 String token = response.getHeaderString(HttpHeaders.AUTHORIZATION);
+                System.out.println("===============> ClientUtils::UserSession :: Token : " + token );
                 return new UserSession(profile, token);
             } finally {
                 response.close();
