@@ -13,7 +13,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
 /**
- * @author Geoffroy Jamgotchian <geoffroy.jamgotchian@rte-france.com>
+ * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
 public interface DataSourceUtil {
 
@@ -23,8 +23,8 @@ public interface DataSourceUtil {
     }
 
     static OpenOption[] getOpenOptions(boolean append) {
-        OpenOption[] defaultOpenOptions = {StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
-        OpenOption[] appendOpenOptions = {StandardOpenOption.APPEND};
+        OpenOption[] defaultOpenOptions = {StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE};
+        OpenOption[] appendOpenOptions = {StandardOpenOption.APPEND, StandardOpenOption.WRITE};
 
         return append ? appendOpenOptions : defaultOpenOptions;
     }

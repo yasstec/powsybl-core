@@ -311,12 +311,11 @@ WHERE {
     VALUES ?type { cim:Switch cim:Breaker cim:Disconnector } .
     ?Terminal1
         a cim:Terminal ;
-        cim:Terminal.ConductingEquipment ?Switch ;
-        cim:ACDCTerminal.sequenceNumber "1" .
+        cim:Terminal.ConductingEquipment ?Switch .
     ?Terminal2
         a cim:Terminal ;
-        cim:Terminal.ConductingEquipment ?Switch ;
-        cim:ACDCTerminal.sequenceNumber "2" .
+        cim:Terminal.ConductingEquipment ?Switch .
+    FILTER ( STR(?Terminal1) < STR(?Terminal2) )
     OPTIONAL {
         ?EquipmentContainer a cim:VoltageLevel .
         BIND ( ?EquipmentContainer AS ?VoltageLevel )
@@ -378,6 +377,26 @@ WHERE {
         a cim:Terminal ;
         cim:Terminal.ConductingEquipment ?EquivalentBranch ;
         cim:ACDCTerminal.sequenceNumber "2" .
+}}
+}
+
+
+# query: seriesCompensators
+SELECT *
+WHERE {
+{ GRAPH ?graph {
+    ?SeriesCompensator
+        a cim:SeriesCompensator ;
+        cim:SeriesCompensator.r ?r ;
+        cim:SeriesCompensator.x ?x ;
+        cim:IdentifiedObject.name ?name .
+    ?Terminal1
+        a cim:Terminal ;
+        cim:Terminal.ConductingEquipment ?SeriesCompensator .
+    ?Terminal2
+        a cim:Terminal ;
+        cim:Terminal.ConductingEquipment ?SeriesCompensator .
+    FILTER ( STR (?Terminal1) < STR (?Terminal2) )
 }}
 }
 
@@ -562,14 +581,18 @@ SELECT *
 WHERE {
 { GRAPH ?graph {
     ?ShuntCompensator
-        a cim:LinearShuntCompensator ;
+        a ?type ;
         cim:IdentifiedObject.name ?name ;
-        cim:LinearShuntCompensator.gPerSection ?gPerSection ;
-        cim:LinearShuntCompensator.bPerSection ?bPerSection ;
         cim:ShuntCompensator.normalSections ?normalSections ;
         cim:ShuntCompensator.maximumSections ?maximumSections ;
         cim:ShuntCompensator.nomU ?nomU .
+    VALUES ?type { cim:LinearShuntCompensator cim:NonlinearShuntCompensator } .
     ?Terminal cim:Terminal.ConductingEquipment ?ShuntCompensator .
+    OPTIONAL {
+        ?ShuntCompensator 
+            cim:LinearShuntCompensator.gPerSection ?gPerSection ;
+            cim:LinearShuntCompensator.bPerSection ?bPerSection 
+    }
     OPTIONAL {
         ?ShuntCompensator cim:RegulatingCondEq.RegulatingControl ?RegulatingControl .
         ?RegulatingControl
@@ -594,6 +617,18 @@ OPTIONAL { GRAPH ?graphSV  {
 OPTIONAL { GRAPH ?graphSSH  {
     ?ShuntCompensator cim:ShuntCompensator.sections ?SSHsections
 }}
+}
+
+# query: nonlinearShuntCompensatorPoints
+SELECT *
+WHERE {
+    ?NonlinearShuntCompensatorPoint
+        a cim:NonlinearShuntCompensatorPoint ;
+        cim:NonlinearShuntCompensatorPoint.NonlinearShuntCompensator ?Shunt ;
+        cim:NonlinearShuntCompensatorPoint.sectionNumber ?sectionNumber ;
+        cim:NonlinearShuntCompensatorPoint.b ?b ;
+        cim:NonlinearShuntCompensatorPoint.g ?g  .
+    FILTER REGEX ( STR (?Shunt), "{0}")
 }
 
 # query: synchronousMachines
