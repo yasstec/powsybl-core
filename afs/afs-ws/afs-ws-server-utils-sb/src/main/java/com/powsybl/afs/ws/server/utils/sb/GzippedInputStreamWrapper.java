@@ -18,33 +18,34 @@ public class GzippedInputStreamWrapper extends HttpServletRequestWrapper {
         try {
             in = new GZIPInputStream(request.getInputStream());
         } catch (EOFException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
         return new ServletInputStream() {
-			@Override
-        	public int read() throws IOException {
+            @Override
+            public int read() throws IOException {
                 return in.read();
             }
-            
-			@Override
+
+            @Override
             public void close() throws IOException {
                 super.close();
                 in.close();
             }
-			@Override
-			public boolean isFinished() {
-				return false;
-			}
-			@Override
-			public boolean isReady() {
-				return false;
-			}
-			@Override
-			public void setReadListener(ReadListener listener) {
-			}
+            @Override
+            public boolean isFinished() {
+                return false;
+            }
+            @Override
+            public boolean isReady() {
+                return false;
+            }
+            @Override
+            public void setReadListener(ReadListener listener) {
+            }
         };
     }
 }

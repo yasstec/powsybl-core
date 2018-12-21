@@ -36,32 +36,23 @@ import static com.powsybl.afs.ws.storage.st.RemoteAppStorageSt.getWebTarget;
 import static com.powsybl.afs.ws.storage.st.RemoteAppStorageSt.createClient;
 import static com.powsybl.afs.ws.storage.st.RemoteListenableAppStorageSt.getWebSocketUri;
 
-public class RemoteTaskMonitorSt implements TaskMonitor{
+public class RemoteTaskMonitorSt implements TaskMonitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteTaskMonitorSt.class);
     public static final String FILE_SYSTEM_NAME = "fileSystemName";
-
     private final String fileSystemName;
-
     private final URI restUri;
-
     private final String token;
-
     private final Map<TaskListener, Session> sessions = new HashMap<>();
-
     private final RestTemplate client;
-
     private final UriComponentsBuilder webTarget;
 
     public RemoteTaskMonitorSt(String fileSystemName, URI restUri, String token) {
         this.fileSystemName = Objects.requireNonNull(fileSystemName);
         this.restUri = Objects.requireNonNull(restUri);
         this.token = token;
-
         client = createClient();
-
         webTarget = getWebTarget(restUri);
     }
-
     @Override
     public Task startTask(ProjectFile projectFile) {
         Objects.requireNonNull(projectFile);
@@ -81,34 +72,31 @@ public class RemoteTaskMonitorSt implements TaskMonitor{
         }
 */
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-        
-    	HttpHeaders headers = new HttpHeaders();
-    	headers.setContentType(MediaType.APPLICATION_JSON);
-    	headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    	headers.add(HttpHeaders.AUTHORIZATION, token);
 
-    	HttpEntity<String> entity = new HttpEntity<>(headers);
-    	
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(FILE_SYSTEM_NAME, fileSystemName);
-        
+
         URI uri = webTargetTemp
-        		.path("fileSystems/{fileSystemName}/tasks")
-        		.queryParam("projectFileId", projectFile.getId())
+                .path("fileSystems/{fileSystemName}/tasks")
+                .queryParam("projectFileId", projectFile.getId())
                 .buildAndExpand(params)
                 .toUri();
-    	
-    	ResponseEntity<Task> response = client.exchange(
-    			    uri,
-    				HttpMethod.PUT,
-    				entity,
-    				Task.class
-    			    );
-    	
-    	Task task = response.getBody();
-    	return task;
+        ResponseEntity<Task> response = client.exchange(
+                    uri,
+                    HttpMethod.PUT,
+                    entity,
+                    Task.class
+                    );
+        Task task = response.getBody();
+        return task;
     }
-
     @Override
     public void stopTask(UUID id) {
         LOGGER.debug("stopTask(fileSystemName={}, id={})", fileSystemName, id);
@@ -125,31 +113,30 @@ public class RemoteTaskMonitorSt implements TaskMonitor{
             response.close();
         }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-        
-    	HttpHeaders headers = new HttpHeaders();
-    	//headers.setContentType(MediaType.APPLICATION_JSON);
-    	//headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    	headers.add(HttpHeaders.AUTHORIZATION, token);
 
-    	HttpEntity<String> entity = new HttpEntity<>(headers);
-		
+        HttpHeaders headers = new HttpHeaders();
+        //headers.setContentType(MediaType.APPLICATION_JSON);
+        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(FILE_SYSTEM_NAME, fileSystemName);
         params.put("taskId", id.toString());
-        
+
         URI uri = webTargetTemp
-        		.path("fileSystems/{fileSystemName}/tasks/{taskId}")
+                .path("fileSystems/{fileSystemName}/tasks/{taskId}")
                 .buildAndExpand(params)
                 .toUri();
-        
-    	ResponseEntity<String> response = client.exchange(
-			    uri,
-				HttpMethod.DELETE,
-				entity,
-				String.class
-			    );
-    }
 
+        ResponseEntity<String> response = client.exchange(
+                uri,
+                HttpMethod.DELETE,
+                entity,
+                String.class
+                );
+    }
     @Override
     public void updateTaskMessage(UUID id, String message) {
         LOGGER.debug("updateTaskMessage(fileSystemName={}, id={})", fileSystemName, id);
@@ -166,31 +153,30 @@ public class RemoteTaskMonitorSt implements TaskMonitor{
             response.close();
         }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-        
-    	HttpHeaders headers = new HttpHeaders();
-    	//headers.setContentType(MediaType.APPLICATION_JSON);
-    	//headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    	headers.add(HttpHeaders.AUTHORIZATION, token);
 
-    	HttpEntity<String> entity = new HttpEntity<>(message, headers);
-		
+        HttpHeaders headers = new HttpHeaders();
+        //headers.setContentType(MediaType.APPLICATION_JSON);
+        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+
+        HttpEntity<String> entity = new HttpEntity<>(message, headers);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(FILE_SYSTEM_NAME, fileSystemName);
         params.put("taskId", id.toString());
-        
+
         URI uri = webTargetTemp
-        		.path("fileSystems/{fileSystemName}/tasks/{taskId}")
+                .path("fileSystems/{fileSystemName}/tasks/{taskId}")
                 .buildAndExpand(params)
                 .toUri();
-        
-    	ResponseEntity<String> response = client.exchange(
-			    uri,
-				HttpMethod.POST,
-				entity,
-				String.class
-			    );
-    }
 
+        ResponseEntity<String> response = client.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                String.class
+                );
+    }
     @Override
     public Snapshot takeSnapshot(String projectId) {
         LOGGER.debug("takeSnapshot(fileSystemName={}, projectId={})", fileSystemName, projectId);
@@ -207,30 +193,30 @@ public class RemoteTaskMonitorSt implements TaskMonitor{
             response.close();
         }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-        
-    	HttpHeaders headers = new HttpHeaders();
-    	headers.setContentType(MediaType.APPLICATION_JSON);
-    	headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-    	headers.add(HttpHeaders.AUTHORIZATION, token);
 
-    	HttpEntity<String> entity = new HttpEntity<>(headers);
-		
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
         Map<String, String> params = new HashMap<String, String>();
         params.put(FILE_SYSTEM_NAME, fileSystemName);
-        
+
         URI uri = webTargetTemp
-        		.path("fileSystems/{fileSystemName}/tasks/{taskId}")
-        		.queryParam("projectId", projectId)
+                .path("fileSystems/{fileSystemName}/tasks/{taskId}")
+                .queryParam("projectId", projectId)
                 .buildAndExpand(params)
                 .toUri();
-        
-    	ResponseEntity<Snapshot> response = client.exchange(
-			    uri,
-				HttpMethod.POST,
-				entity,
-				Snapshot.class
-			    );
-    	return response.getBody();
+
+        ResponseEntity<Snapshot> response = client.exchange(
+                uri,
+                HttpMethod.POST,
+                entity,
+                Snapshot.class
+                );
+        return response.getBody();
     }
 
     @Override

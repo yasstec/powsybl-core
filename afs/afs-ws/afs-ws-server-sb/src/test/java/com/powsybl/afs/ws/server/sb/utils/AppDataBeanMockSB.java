@@ -10,30 +10,20 @@ import org.mockito.Mockito;
 
 import javax.annotation.PostConstruct;
 
-
-import javax.inject.Singleton;
-
-//import javax.enterprise.inject.Specializes;
 import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.context.annotation.Profile;
 
-
 import com.powsybl.afs.AppData;
-//import com.powsybl.afs.AppData;
 import com.powsybl.afs.mapdb.storage.MapDbAppStorage;
 import com.powsybl.afs.storage.DefaultListenableAppStorage;
 import com.powsybl.afs.storage.ListenableAppStorage;
-import com.powsybl.afs.ws.server.utils.AppDataBean;
 import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
-
-
 
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -43,10 +33,10 @@ import com.powsybl.afs.ws.server.utils.sb.AppDataBeanSB;
 public class AppDataBeanMockSB extends AppDataBeanSB {
 
     static final String TEST_FS_NAME = "mem";
-	
+
     @Autowired
-	private AppData appData;
-    
+    private AppData appData;
+
     @Configuration
     static class Config {
         @Bean
@@ -54,7 +44,7 @@ public class AppDataBeanMockSB extends AppDataBeanSB {
             return Mockito.mock(AppData.class);
         }
     }
-    
+
     @PostConstruct
     @Override
     public void init() {
@@ -67,6 +57,6 @@ public class AppDataBeanMockSB extends AppDataBeanSB {
                 .thenReturn(Collections.singletonList(TEST_FS_NAME));
     }
     private void setAppDataSB() {
-    	super.appData=appData;
+        super.appData = appData;
     }
 }

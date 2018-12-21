@@ -18,30 +18,27 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-	
     @Bean
-    public Docket produceApi(){
-    	return new Docket(DocumentationType.SWAGGER_2)
-    			.apiInfo(apiInfo())
-    			.select()
-    			.apis(RequestHandlerSelectors.basePackage(AppStorageServerSB.class.getPackage().getName()))
-    			.paths(paths())
-    			.build();
-    	
+    public Docket produceApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage(AppStorageServerSB.class.getPackage().getName()))
+                .paths(paths())
+                .build();
     }
 
     // Describe your apis
     private ApiInfo apiInfo() {
-    	return new ApiInfoBuilder()
-    			.title("AFS storage API")
-    			.description("This is the documentation of AFS storage REST API")
-    			.version(AfsRestApi.VERSION)
-    			.build();
+        return new ApiInfoBuilder()
+                .title("AFS storage API")
+                .description("This is the documentation of AFS storage REST API")
+                .version(AfsRestApi.VERSION)
+                .build();
     }
-
-	// Only select apis that matches the given Predicates.
-	private Predicate<String> paths() {
-		// Match all paths except /error
-		return Predicates.and(PathSelectors.regex("/rest/" +AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION+".*"), Predicates.not(PathSelectors.regex("/error.*")));
+    // Only select apis that matches the given Predicates.
+    private Predicate<String> paths() {
+        // Match all paths except /error
+        return Predicates.and(PathSelectors.regex("/rest/" + AfsRestApi.RESOURCE_ROOT + "/" + AfsRestApi.VERSION + ".*"), Predicates.not(PathSelectors.regex("/error.*")));
     }
 }

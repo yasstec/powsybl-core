@@ -39,12 +39,10 @@ public class RemoteListenableAppStorage extends ForwardingAppStorage implements 
         URI wsUri = getWebSocketUri(restUri);
         URI endPointUri = URI.create(wsUri + "/messages/" + AfsRestApi.RESOURCE_ROOT + "/" +
                 AfsRestApi.VERSION + "/node_events/" + storage.getFileSystemName());
-        System.out.println("====================>> RemoteListenableAppStorage::endPointUri : " + endPointUri.toString());
         LOGGER.debug("Connecting to node event websocket at {}", endPointUri);
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         try {
-        	System.out.println("====================>> RemoteListenableAppStorage::endPointUri : " + container + " -- " + storage.getFileSystemName() + " -- " + listeners + " -- " + endPointUri);
             container.connectToServer(new NodeEventClient(storage.getFileSystemName(), listeners), endPointUri);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

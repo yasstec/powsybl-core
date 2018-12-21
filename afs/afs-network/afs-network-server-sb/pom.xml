@@ -61,8 +61,6 @@
         	</exclusions>
 			<scope>provided</scope>
         </dependency>
-
-
 				
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -82,7 +80,7 @@
         <dependency>    
         	<groupId>${project.groupId}</groupId>
         	<version>${project.version}</version>
-    		<artifactId>powsybl-afs-ws-storage-st</artifactId>
+    		<artifactId>powsybl-afs-ws-storage-st-utils</artifactId>
 		</dependency>
         <!-- <dependency>
         	<groupId>${project.groupId}</groupId>

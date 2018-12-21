@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.powsybl.afs.ws.server.utils.sb.jwt.exceptions.JwtAuthenticationException;
 
-import java.util.Optional;
-
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final JwtService jwtService;
@@ -40,4 +38,3 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return JwtAuthToken.class.equals(authentication);
     }
 }
-

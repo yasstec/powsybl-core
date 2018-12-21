@@ -8,9 +8,6 @@ package com.powsybl.commons;
 
 import com.google.common.collect.ImmutableMap;
 
-import java.lang.Object;
-import java.lang.Override;
-import java.lang.String;
 import java.util.Objects;
 import java.util.Map;
 import org.joda.time.DateTime;
@@ -76,6 +73,10 @@ public class Version {
                     && buildTimestamp == other.buildTimestamp;
         }
         return false;
+    }
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     @Override

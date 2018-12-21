@@ -26,39 +26,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-    	http.csrf()
-    				////.ignoringAntMatchers("/imagrid-authent/rest/users/login")
-    				////.ignoringAntMatchers("/rest/users/login")
-					////.ignoringAntMatchers("/**/rest/users/login")
-					//.ignoringAntMatchers("/rest/afs/v1/fileSystems/**/*")
-    				//.ignoringAntMatchers("/imagrid-server/messages/**/*")
-					.disable()
-			    	   .authorizeRequests()
-    				;
+        http.csrf()
+            .disable()
+            .authorizeRequests();
 
         String[] patterns = new String[] {
-            	//"/rest/users/login",
-            	"/imagrid-authent/rest/users/login",
-            	"/rest/users/login",
-            	//"/**/rest/users/login",
-            	//"/messages/**/*",
-            	"/imagrid-server/messages/**/*",
-				"/v2/api-docs",
-				"/swagger-ui.html",
-				"/webjars/**/*",
-				"/swagger-resources/**/*",
-				"/swagger-resources",
-				"/index.html"
+            //"/rest/users/login",
+            "/imagrid-authent/rest/users/login",
+            "/rest/users/login",
+            //"/**/rest/users/login",
+            //"/messages/**/*",
+            "/imagrid-server/messages/**/*",
+            "/v2/api-docs",
+            "/swagger-ui.html",
+            "/webjars/**/*",
+            "/swagger-resources/**/*",
+            "/swagger-resources",
+            "/index.html"
         };
         http.authorizeRequests()
-                .antMatchers(patterns)
-                .permitAll()
-                .antMatchers("/**/*")
-                .hasAuthority("ROLE_USER")
-                .and()
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthEndPoint)
-                ;
+            .antMatchers(patterns)
+            .permitAll()
+            .antMatchers("/**/*")
+            .hasAuthority("ROLE_USER")
+            .and()
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling()
+            .authenticationEntryPoint(jwtAuthEndPoint);
     }
 }

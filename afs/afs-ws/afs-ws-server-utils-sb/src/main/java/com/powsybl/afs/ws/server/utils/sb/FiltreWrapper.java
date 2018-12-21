@@ -1,8 +1,6 @@
 package com.powsybl.afs.ws.server.utils.sb;
 
-
 import java.io.IOException;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -17,36 +15,35 @@ import org.springframework.http.HttpHeaders;
 
 @Configuration
 public class FiltreWrapper implements Filter   {
-	@Override
-	public final void doFilter(final ServletRequest servletRequest,
-	                           final ServletResponse servletResponse,
-	                           final FilterChain chain) throws IOException, ServletException {
-				
-	    HttpServletRequest request = (HttpServletRequest) servletRequest;
-	    HttpServletResponse response = (HttpServletResponse) servletResponse;
+    @Override
+    public final void doFilter(final ServletRequest servletRequest,
+                               final ServletResponse servletResponse,
+                               final FilterChain chain) throws IOException, ServletException {
 
-	    boolean isGzipped = request.getHeader(HttpHeaders.CONTENT_ENCODING) != null && request.getHeader(HttpHeaders.CONTENT_ENCODING).contains("gzip");
-	    
-	    boolean requestTypeSupported = "POST".equals(request.getMethod()) ||  "PUT".equals(request.getMethod());
-	    if (isGzipped && !requestTypeSupported) {
-	        throw new IllegalStateException(request.getMethod()
-	                + " is not supports gzipped body of parameters."
-	                + " Only POST requests are currently supported.");
-	    }
-	    if (isGzipped && requestTypeSupported) {
-	        request = new GzippedInputStreamWrapper((HttpServletRequest) servletRequest);
-	    }
-	    GZIPResponseWrapper gzipResponse = new GZIPResponseWrapper(response);
-	    chain.doFilter(request, gzipResponse);
-	    gzipResponse.finish();
-	}
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-	}
+        boolean isGzipped = request.getHeader(HttpHeaders.CONTENT_ENCODING) != null && request.getHeader(HttpHeaders.CONTENT_ENCODING).contains("gzip");
 
-	@Override
-	public void destroy() {
-	}
+        boolean requestTypeSupported = "POST".equals(request.getMethod()) ||  "PUT".equals(request.getMethod());
+        if (isGzipped && !requestTypeSupported) {
+            throw new IllegalStateException(request.getMethod()
+                    + " is not supports gzipped body of parameters."
+                    + " Only POST requests are currently supported.");
+        }
+        if (isGzipped && requestTypeSupported) {
+            request = new GzippedInputStreamWrapper((HttpServletRequest) servletRequest);
+        }
+        GzipResponseWrapper gzipResponse = new GzipResponseWrapper(response);
+        chain.doFilter(request, gzipResponse);
+        gzipResponse.finish();
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
+
+    @Override
+    public void destroy() {
+    }
 }
-

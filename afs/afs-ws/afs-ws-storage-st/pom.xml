@@ -27,48 +27,33 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-	  		<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Finchley.SR1</version>
-				<type>pom</type>
-				<scope>import</scope>
-	  		</dependency>				
 		</dependencies>
 	</dependencyManagement>
     
     <dependencies>
-        <dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-			<exclusions>
-            	<exclusion>
-                	<groupId>javax.ws.rs</groupId>
-                	<artifactId>jsr311-api</artifactId>
-            	</exclusion>
-        	</exclusions>
-			<scope>provided</scope>
-        </dependency>
-  		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<scope>provided</scope>
-		</dependency>
-       <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-            <scope>provided</scope>
-        </dependency>
  		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>    
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-<!-- 	<dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-webflux</artifactId>
-    		<scope>provided</scope>
-		</dependency>-->
+       <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+		<dependency>
+    		<groupId>org.glassfish.jersey.core</groupId>
+    		<artifactId>jersey-client</artifactId>
+    		<version>2.27</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.glassfish.jersey.inject</groupId>
+		    <artifactId>jersey-hk2</artifactId>
+		    <version>2.27</version>
+		</dependency>
 		
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -79,16 +64,29 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ws-client-utils</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+            	<exclusion>
+                	<groupId>org.jboss.resteasy</groupId>
+    				<artifactId>resteasy-client</artifactId>
+        		</exclusion>
+        	</exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ws-utils</artifactId>
             <version>${project.version}</version>
+            
         </dependency>		
         <dependency>
             <groupId>${project.groupId}</groupId>
 		    <artifactId>powsybl-afs-ws-storage</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+            	<exclusion>
+                	<groupId>org.jboss.resteasy</groupId>
+    				<artifactId>resteasy-client</artifactId>
+        		</exclusion>
+        	</exclusions>            
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

@@ -22,8 +22,8 @@ public class JwtService {
     private static final String ISSUER = "com.powsybl.afs.ws.server.utils.sb.jwt";
     public static final String USERNAME = "username";
 
-	@Autowired
-	private KeyGenerator keyGenerator;
+    @Autowired
+    private KeyGenerator keyGenerator;
 
     public String tokenFor(String login, long tokenValidity)  throws IOException, URISyntaxException {
         Key key = keyGenerator.generateKey();
@@ -38,9 +38,8 @@ public class JwtService {
                 .compact();
     }
     public String verify(String token) throws IOException, URISyntaxException {
-    	Key key = keyGenerator.generateKey();
+        Key key = keyGenerator.generateKey();
         Jws<Claims> claims = Jwts.parser().setSigningKey(key).parseClaimsJws(token);
-        
         return claims.getBody().getSubject().toString();
     }
 }

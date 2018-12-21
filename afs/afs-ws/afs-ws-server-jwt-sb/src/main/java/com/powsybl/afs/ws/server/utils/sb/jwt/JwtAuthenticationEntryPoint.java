@@ -23,7 +23,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         String message;
-        if(e.getCause() != null) {
+        if (e.getCause() != null) {
             message = e.getCause().getMessage();
         } else {
             message = e.getMessage();

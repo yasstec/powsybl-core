@@ -9,7 +9,7 @@ import java.util.Collections;
 
 public class JwtAuthenticatedProfile implements Authentication {
 
-	private final String username;
+    private final String username;
     public JwtAuthenticatedProfile(String username) {
         this.username = username;
     }

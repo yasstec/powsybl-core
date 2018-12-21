@@ -32,5 +32,6 @@
         <module>afs-ws-storage-st</module>
         <module>afs-ws-server-sb</module>
         <module>afs-ws-utils</module>
+    <module>afs-ws-storage-st-utils</module>
   </modules>
 </project>
