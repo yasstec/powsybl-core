@@ -8,7 +8,6 @@ import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.WebApplicationException;
-//import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;

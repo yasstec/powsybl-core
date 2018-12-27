@@ -21,17 +21,18 @@
     <packaging>pom</packaging>
 
     <modules>
+    	<module>afs-ws-utils</module>
         <module>afs-ws-client</module>
         <module>afs-ws-client-utils</module>
+        <module>afs-ws-client-utils-st</module>
         <module>afs-ws-server</module>
         <module>afs-ws-server-utils</module>
         <module>afs-ws-server-jwt-sb</module>
         <module>afs-ws-server-utils-sb</module>
         <module>afs-ws-server-sb-test</module>
         <module>afs-ws-storage</module>
+        <module>afs-ws-storage-st-utils</module>
         <module>afs-ws-storage-st</module>
         <module>afs-ws-server-sb</module>
-        <module>afs-ws-utils</module>
-    <module>afs-ws-storage-st-utils</module>
-  </modules>
+  	</modules>
 </project>

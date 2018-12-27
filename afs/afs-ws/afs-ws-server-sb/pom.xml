@@ -44,14 +44,15 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<!-- -->
-
-		
        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -70,30 +71,47 @@
 			<version>2.6.1</version>
 			<scope>provided</scope>
 		</dependency>
-
-          
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>afs-ws-server-sb-test</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-storage-st</artifactId>
-            <version>${project.version}</version>
-        </dependency>  
         <!-- <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <version>2.1.1</version>
-        </dependency>-->
-                
-        <!-- <dependency>
+        </dependency>-->		
+        <dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.6</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.module</groupId>
+		    <artifactId>jackson-module-kotlin</artifactId>
+		    <version>2.9.6</version>
+		</dependency>
+ 		<dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.9.6</version>
+		</dependency>
+		<dependency>
+  			<groupId>io.netty</groupId>
+  			<artifactId>netty-transport-native-epoll</artifactId>
+  			<version>4.0.27.Final</version>
+  			<classifier>linux-x86_64</classifier>
+  			<scope>runtime</scope>
+		</dependency>
+		
+		
+		<!-- <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ws-storage</artifactId>
             <version>${project.version}</version>
         </dependency>-->
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-storage-api</artifactId>
@@ -112,35 +130,16 @@
 	       	<version>${project.version}</version>
   			<artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
       	</dependency>
-        <!-- Compilation dependencies -->
         <dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.6</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>com.fasterxml.jackson.module</groupId>
-		    <artifactId>jackson-module-kotlin</artifactId>
-		    <version>2.9.6</version>
-		</dependency>
-		
- 		<dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>3.2.0</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>afs-ws-server-sb-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-core</artifactId>
-			<version>2.9.6</version>
-		</dependency>
-		<dependency>
-  			<groupId>io.netty</groupId>
-  			<artifactId>netty-transport-native-epoll</artifactId>
-  			<version>4.0.27.Final</version>
-  			<classifier>linux-x86_64</classifier>
-  			<scope>runtime</scope>
-		</dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>powsybl-afs-ws-storage-st</artifactId>
+            <version>${project.version}</version>
+        </dependency>  
 	</dependencies>
 </project>

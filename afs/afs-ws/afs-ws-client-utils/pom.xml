@@ -39,46 +39,6 @@
     </build>
 
     <dependencies>
-      		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-			<exclusions>
-            <exclusion>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-            </exclusion>
-        	</exclusions>
-        	<scope>provided</scope>
-		</dependency>		
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-        	<scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-sleuth</artifactId>
-        	<scope>provided</scope>
-		</dependency>
-		
-		
-		
-		
         <!-- Compilation dependencies -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
@@ -115,47 +75,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
-	<dependencyManagement>      
-    	<dependencies>
-      		<dependency>
-				<groupId>org.springframework.data</groupId>
-				<artifactId>spring-data-releasetrain</artifactId>
-				<version>Fowler-SR2</version>
-				<type>pom</type>
-				<scope>import</scope>
-      		</dependency>
-      		<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.0.4.RELEASE</version>
-				<type>pom</type>
-				<scope>import</scope>
-      		</dependency>
-	  		<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>Finchley.SR1</version>
-				<type>pom</type>
-				<scope>import</scope>
-	  		</dependency>    
-	  		<!-- <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-config</artifactId>
-            <version>2.0.3.BUILD-SNAPSHOT</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>-->  		
-    	</dependencies>
-	</dependencyManagement>  
-<repositories>
-    <repository>
-        <id>spring-snapshots</id>
-        <name>Spring Snapshots</name>
-        <url>https://repo.spring.io/libs-snapshot</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>    
 </project>

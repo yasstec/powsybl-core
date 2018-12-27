@@ -8,6 +8,7 @@ package com.powsybl.afs.ws.storage.st;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.powsybl.afs.storage.AfsStorageException;
 import com.powsybl.afs.storage.AppStorage;
 import com.powsybl.afs.storage.NodeDependency;
 import com.powsybl.afs.storage.NodeGenericMetadata;
@@ -27,42 +28,36 @@ import com.powsybl.timeseries.TimeSeriesVersions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AbstractClientHttpRequestFactoryWrapper;
-
 import org.springframework.http.client.ClientHttpRequest;
-
 import org.springframework.http.client.ClientHttpRequestFactory;
-
 import org.springframework.http.client.ClientHttpResponse;
-
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
-
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-
-
-
-
 import org.springframework.web.client.RestTemplate;
-
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
-import javax.ws.rs.core.*;
+import static com.powsybl.afs.ws.client.utils.st.ClientUtilsSt.checkOk;
+import static com.powsybl.afs.ws.client.utils.st.ClientUtilsSt.readEntityIfOk;
+
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -71,11 +66,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-
 import java.util.zip.GZIPOutputStream;
-
-import static com.powsybl.afs.ws.client.utils.ClientUtils.*;
-
 /**
  * @author Ali Tahanout <ali.tahanout at rte-france.com>
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -137,6 +128,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     HttpMethod.POST,
                     entity,
                     String.class);
+            try {
+                checkOk(response);
+            } finally {
+                response = null;
+            }
         }, BUFFER_MAXIMUM_CHANGE, BUFFER_MAXIMUM_SIZE);
     }
     static RestTemplate createClient() {
@@ -212,8 +208,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     HttpMethod.GET,
                     entity,
                     new ParameterizedTypeReference<List<String>>() { });
-        List<String> lstr = response.getBody();
-        return lstr;
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public NodeInfo createRootNodeIfNotExists(String name, String nodePseudoClass) {
@@ -246,9 +245,13 @@ public class RemoteAppStorageSt implements AppStorage {
                     entity,
                     NodeInfo.class
                     );
-        NodeInfo nodeInfo = response.getBody();
-        return nodeInfo;
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
+
     @Override
     public boolean isWritable(String nodeId) {
         Objects.requireNonNull(nodeId);
@@ -278,8 +281,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
-        Boolean bool = Boolean.parseBoolean(response.getBody());
-        return bool;
+        try {
+            return Boolean.parseBoolean(readEntityIfOk(response));
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void setDescription(String nodeId, String description) {
@@ -315,6 +321,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     entity,
                     String.class
                     );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void renameNode(String nodeId, String name) {
@@ -351,6 +362,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     entity,
                     String.class
                     );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void updateModificationTime(String nodeId) {
@@ -387,6 +403,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     entity,
                     String.class
                     );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public NodeInfo createNode(String parentNodeId, String name, String nodePseudoClass, String description,
@@ -433,9 +454,11 @@ public class RemoteAppStorageSt implements AppStorage {
                     entity,
                     NodeInfo.class
                     );
-
-        NodeInfo nodeInfo = response.getBody();
-        return nodeInfo;
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public List<NodeInfo> getChildNodes(String nodeId) {
@@ -466,7 +489,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<List<NodeInfo>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Optional<NodeInfo> getChildNode(String nodeId, String name) {
@@ -500,7 +527,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 NodeInfo.class
                 );
-        return Optional.ofNullable(response.getBody());
+        try {
+            return Optional.ofNullable(readEntityIfOk(response));
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Optional<NodeInfo> getParentNode(String nodeId) {
@@ -531,7 +562,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 NodeInfo.class
                 );
-        return Optional.ofNullable(response.getBody());
+        try {
+            return Optional.ofNullable(readEntityIfOk(response));
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void setParentNode(String nodeId, String newParentNodeId) {
@@ -568,6 +603,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -602,7 +642,35 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
+    }
+    @Override
+    public OutputStream writeBinaryData(String nodeId, String name) {
+        Objects.requireNonNull(nodeId);
+        Objects.requireNonNull(name);
+
+        // flush buffer to keep change order
+        changeBuffer.flush();
+
+        LOGGER.debug("writeBinaryData(fileSystemName={}, nodeId={}, name={})", fileSystemName, nodeId, name);
+
+        UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
+
+        Client client = ClientBuilder.newClient();
+        AsyncInvoker asyncInvoker = client.target(webTargetTemp.toUriString() + "/" + NODE_DATA_PATH)
+                                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
+                                .resolveTemplate(NODE_ID, nodeId)
+                                .resolveTemplate("name", name)
+                                .request()
+                                .header(HttpHeaders.AUTHORIZATION, token)
+                                //.header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                                //.acceptEncoding("gzip")
+                                .async();
+        return new OutputStreamPutRequest(asyncInvoker);
     }
     private static class OutputStreamPutRequest extends ForwardingOutputStream<PipedOutputStream> {
 
@@ -633,6 +701,24 @@ public class RemoteAppStorageSt implements AppStorage {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new UncheckedInterruptedException(e);
+            }
+        }
+        private static AfsStorageException createServerErrorException(Response response) {
+            return new AfsStorageException(response.readEntity(String.class));
+        }
+
+        private static AfsStorageException createUnexpectedResponseStatus(Response.Status status) {
+            return new AfsStorageException("Unexpected response status: '" + status + "'");
+        }
+
+        public static void checkOk(Response response) {
+            Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (status != Response.Status.OK) {
+                if (status == Response.Status.INTERNAL_SERVER_ERROR) {
+                    throw createServerErrorException(response);
+                } else {
+                    throw createUnexpectedResponseStatus(status);
+                }
             }
         }
     }
@@ -678,35 +764,9 @@ public class RemoteAppStorageSt implements AppStorage {
                 return Optional.empty();
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return Optional.empty();
-    }
-
-    @Override
-    public OutputStream writeBinaryData(String nodeId, String name) {
-        Objects.requireNonNull(nodeId);
-        Objects.requireNonNull(name);
-
-        // flush buffer to keep change order
-        changeBuffer.flush();
-
-        LOGGER.debug("writeBinaryData(fileSystemName={}, nodeId={}, name={})", fileSystemName, nodeId, name);
-
-        UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-
-        Client client = ClientBuilder.newClient();
-        AsyncInvoker asyncInvoker = client.target(webTargetTemp.toUriString() + "/" + NODE_DATA_PATH)
-                                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                                .resolveTemplate(NODE_ID, nodeId)
-                                .resolveTemplate("name", name)
-                                .request()
-                                .header(HttpHeaders.AUTHORIZATION, token)
-                                //.header(HttpHeaders.CONTENT_ENCODING, "gzip")
-                                //.acceptEncoding("gzip")
-                                .async();
-        return new OutputStreamPutRequest(asyncInvoker);
     }
     @Override
     public boolean dataExists(String nodeId, String name) {
@@ -738,7 +798,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Boolean>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Set<String> getDataNames(String nodeId) {
@@ -768,7 +832,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<String>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public boolean removeData(String nodeId, String name) {
@@ -801,7 +869,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 Boolean.class
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -842,6 +914,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Set<NodeInfo> getDependencies(String nodeId, String name) {
@@ -868,14 +945,17 @@ public class RemoteAppStorageSt implements AppStorage {
                 .path("fileSystems/{fileSystemName}/nodes/{nodeId}/dependencies/{name}")
                 .buildAndExpand(params)
                 .toUri();
-
         ResponseEntity<Set<NodeInfo>> response = client.exchange(
                 uri,
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<Set<NodeInfo>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Set<NodeDependency> getDependencies(String nodeId) {
@@ -906,7 +986,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<NodeDependency>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public Set<NodeInfo> getBackwardDependencies(String nodeId) {
@@ -937,7 +1021,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<NodeInfo>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void removeDependency(String nodeId, String name, String toNodeId) {
@@ -974,6 +1062,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void createTimeSeries(String nodeId, TimeSeriesMetadata metadata) {
@@ -990,20 +1083,6 @@ public class RemoteAppStorageSt implements AppStorage {
         Objects.requireNonNull(nodeId);
 
         LOGGER.debug("getTimeSeriesNames(fileSystemName={}, nodeId={})", fileSystemName, nodeId);
-/*
-        Response response = webTarget.path("fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/name")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .resolveTemplate(NODE_ID, nodeId)
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .get();
-        try {
-            return readEntityIfOk(response, new GenericType<Set<String>>() {
-            });
-        } finally {
-            response.close();
-        }
-*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
@@ -1026,7 +1105,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<String>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -1035,19 +1118,6 @@ public class RemoteAppStorageSt implements AppStorage {
         Objects.requireNonNull(timeSeriesName);
 
         LOGGER.debug("timeSeriesExists(fileSystemName={}, nodeId={}, timeSeriesName={})", fileSystemName, nodeId, timeSeriesName);
-/*
-        Response response = webTarget.path("fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/{timeSeriesName}")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .resolveTemplate(NODE_ID, nodeId)
-                .resolveTemplate("timeSeriesName", timeSeriesName)
-                .request(MediaType.TEXT_PLAIN_TYPE)
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .get();
-        try {
-            return readEntityIfOk(response, Boolean.class);
-        } finally {
-            response.close();
-        }*/
 
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
@@ -1072,7 +1142,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 Boolean.class
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -1083,19 +1157,7 @@ public class RemoteAppStorageSt implements AppStorage {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getTimeSeriesMetadata(fileSystemName={}, nodeId={}, timeSeriesNames={})", fileSystemName, nodeId, timeSeriesNames);
         }
-/*
-        Response response = webTarget.path("fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/metadata")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .resolveTemplate(NODE_ID, nodeId)
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .post(Entity.json(timeSeriesNames));
-        try {
-            return readEntityIfOk(response, new GenericType<List<TimeSeriesMetadata>>() {
-            });
-        } finally {
-            response.close();
-        }*/
+
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
@@ -1118,7 +1180,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<List<TimeSeriesMetadata>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -1149,7 +1215,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<Integer>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -1182,13 +1252,16 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Set<Integer>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
     public void addDoubleTimeSeriesData(String nodeId, int version, String timeSeriesName, List<DoubleDataChunk> chunks) {
         Objects.requireNonNull(nodeId);
-        //TimeSeriesIndex.checkVersion(version);
         TimeSeriesVersions.check(version);
         Objects.requireNonNull(timeSeriesName);
         Objects.requireNonNull(chunks);
@@ -1205,7 +1278,6 @@ public class RemoteAppStorageSt implements AppStorage {
     public Map<String, List<DoubleDataChunk>> getDoubleTimeSeriesData(String nodeId, Set<String> timeSeriesNames, int version) {
         Objects.requireNonNull(nodeId);
         Objects.requireNonNull(timeSeriesNames);
-        //TimeSeriesIndex.checkVersion(version);
         TimeSeriesVersions.check(version);
 
         if (LOGGER.isDebugEnabled()) {
@@ -1236,13 +1308,16 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Map<String, List<DoubleDataChunk>>>() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
     public void addStringTimeSeriesData(String nodeId, int version, String timeSeriesName, List<StringDataChunk> chunks) {
         Objects.requireNonNull(nodeId);
-        //TimeSeriesIndex.checkVersion(version);
         TimeSeriesVersions.check(version);
         Objects.requireNonNull(timeSeriesName);
         Objects.requireNonNull(chunks);
@@ -1251,7 +1326,6 @@ public class RemoteAppStorageSt implements AppStorage {
             LOGGER.debug("addStringTimeSeriesData(fileSystemName={}, nodeId={}, version={}, timeSeriesName={}, chunks={}) [BUFFERED]",
                     fileSystemName, nodeId, version, timeSeriesName, chunks);
         }
-
         changeBuffer.addStringTimeSeriesData(nodeId, version, timeSeriesName, chunks);
     }
 
@@ -1259,7 +1333,6 @@ public class RemoteAppStorageSt implements AppStorage {
     public Map<String, List<StringDataChunk>> getStringTimeSeriesData(String nodeId, Set<String> timeSeriesNames, int version) {
         Objects.requireNonNull(nodeId);
         Objects.requireNonNull(timeSeriesNames);
-        //TimeSeriesIndex.checkVersion(version);
         TimeSeriesVersions.check(version);
 
         if (LOGGER.isDebugEnabled()) {
@@ -1290,7 +1363,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 new ParameterizedTypeReference<Map<String, List<StringDataChunk>> >() { }
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
 
     @Override
@@ -1324,6 +1401,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 String.class
                 );
+        try {
+            checkOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public NodeInfo getNodeInfo(String nodeId) {
@@ -1353,7 +1435,11 @@ public class RemoteAppStorageSt implements AppStorage {
                 entity,
                 NodeInfo.class
                 );
-        return response.getBody();
+        try {
+            return readEntityIfOk(response);
+        } finally {
+            response = null;
+        }
     }
     @Override
     public void flush() {
@@ -1493,12 +1579,10 @@ class WrapperClientHttpRequest implements ClientHttpRequest {
     public HttpHeaders getHeaders() {
         return delegate.getHeaders();
     }
-
     @Override
     public URI getURI() {
         return delegate.getURI();
     }
-
     @Override
     public HttpMethod getMethod() {
         return delegate.getMethod();
@@ -1508,11 +1592,8 @@ class WrapperClientHttpRequest implements ClientHttpRequest {
     public ClientHttpResponse execute() throws IOException {
         return delegate.execute();
     }
-    //***
-
     @Override
     public String getMethodValue() {
-        // TODO Auto-generated method stub
         return delegate.getMethodValue();
     }
 }

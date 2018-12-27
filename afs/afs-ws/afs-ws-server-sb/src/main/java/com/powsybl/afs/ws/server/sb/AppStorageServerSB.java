@@ -126,7 +126,7 @@ public class AppStorageServerSB {
         if (parentNodeInfo.isPresent()) {
             return ResponseEntity.ok().body(parentNodeInfo.get());
         } else {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build(); //noContent().build();
         }
     }
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}",  produces = MediaType.APPLICATION_JSON_VALUE)
@@ -182,7 +182,7 @@ public class AppStorageServerSB {
         if (childNodeInfo.isPresent()) {
             return ResponseEntity.ok().body(childNodeInfo.get());
         } else {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build(); //ResponseEntity.noContent().build();
         }
     }
     @RequestMapping(method = RequestMethod.PUT, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/description", consumes = MediaType.TEXT_PLAIN_VALUE)
