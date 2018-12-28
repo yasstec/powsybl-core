@@ -53,7 +53,6 @@ public class RemoteNetworkCacheServiceSt implements NetworkCacheService {
         this.configSupplier = Objects.requireNonNull(configSupplier);
         this.token = token;
         this.webTarget = getWebTarget(getConfig().getRestUri());
-        UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
     }
     private RemoteServiceConfig getConfig() {
         return Objects.requireNonNull(configSupplier.get()).orElseThrow(() -> new AfsException("Remote service config is missing"));
