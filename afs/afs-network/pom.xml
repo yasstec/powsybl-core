@@ -23,7 +23,8 @@
     <modules>
         <module>afs-network-client</module>
         <module>afs-network-server</module>
+        <module>afs-network-client-st</module>
     	<module>afs-network-server-sb</module>
-  	</modules>
+  </modules>
 
 </project>
