@@ -50,18 +50,22 @@
             <artifactId>powsybl-afs-core</artifactId>
             <version>${project.version}</version>
         </dependency>  
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
-            <version>${project.version}</version>
-		</dependency>
 		<dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
     		<artifactId>powsybl-afs-ws-storage-st</artifactId>
 		</dependency> 		
 -->		
-		
+		<dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+  			<artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
+		</dependency>
+		<dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+    		<artifactId>powsybl-afs-ws-client-utils</artifactId>
+		</dependency>
   	</dependencies>
 
 </project>

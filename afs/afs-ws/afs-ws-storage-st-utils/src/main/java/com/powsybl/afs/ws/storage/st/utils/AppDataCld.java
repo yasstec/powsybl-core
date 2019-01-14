@@ -19,10 +19,6 @@ import com.powsybl.afs.AppFileSystem;
 import com.powsybl.afs.ws.storage.st.RemoteAppStorageSt;
 import com.powsybl.afs.ws.storage.st.RemoteListenableAppStorageSt;
 import com.powsybl.afs.ws.storage.st.RemoteTaskMonitorSt;
-//import com.powsybl.afs.ws.storage.RemoteTaskMonitor;
-//import com.powsybl.afs.ws.storage.st.RemoteAppStorageSt;
-//import com.powsybl.afs.ws.storage.st.RemoteListenableAppStorageSt;
-//import com.powsybl.afs.ws.storage.st.RemoteTaskMonitorSt;
 import com.powsybl.computation.ComputationManager;
 
 public class AppDataCld extends AppData {
@@ -47,9 +43,7 @@ public class AppDataCld extends AppData {
         try {
             return getFileSystemNames("").stream()
                         .map(fileSystemName -> {
-                            //RemoteAppStorage storage = new RemoteAppStorage(fileSystemName, uri, context.getToken());
                             RemoteAppStorageSt storage = new RemoteAppStorageSt(fileSystemName, uri, "");
-                            //RemoteListenableAppStorage listenableStorage = new RemoteListenableAppStorage(storage, uri);
                             RemoteListenableAppStorageSt listenableStorage = new RemoteListenableAppStorageSt(storage, uri);
                             RemoteTaskMonitorSt taskMonitor = new RemoteTaskMonitorSt(fileSystemName, uri, "");
                             return new AppFileSystem(fileSystemName, true, listenableStorage, taskMonitor);

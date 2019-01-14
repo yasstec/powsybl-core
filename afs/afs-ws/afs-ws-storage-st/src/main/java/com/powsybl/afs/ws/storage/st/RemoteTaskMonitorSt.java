@@ -58,19 +58,7 @@ public class RemoteTaskMonitorSt implements TaskMonitor {
         Objects.requireNonNull(projectFile);
 
         LOGGER.debug("startTask(fileSystemName={}, projectFile={})", fileSystemName, projectFile.getId());
-/*
-        Response response = webTarget.path("fileSystems/{fileSystemName}/tasks")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .queryParam("projectFileId", projectFile.getId())
-                .request(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .put(Entity.text(""));
-        try {
-            return readEntityIfOk(response, TaskMonitor.Task.class);
-        } finally {
-            response.close();
-        }
-*/
+
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
@@ -101,22 +89,9 @@ public class RemoteTaskMonitorSt implements TaskMonitor {
     public void stopTask(UUID id) {
         LOGGER.debug("stopTask(fileSystemName={}, id={})", fileSystemName, id);
 
-        /*Response response = webTarget.path("fileSystems/{fileSystemName}/tasks/{taskId}")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .resolveTemplate("taskId", id)
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .delete();
-        try {
-            checkOk(response);
-        } finally {
-            response.close();
-        }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -141,22 +116,9 @@ public class RemoteTaskMonitorSt implements TaskMonitor {
     public void updateTaskMessage(UUID id, String message) {
         LOGGER.debug("updateTaskMessage(fileSystemName={}, id={})", fileSystemName, id);
 
-        /*Response response = webTarget.path("fileSystems/{fileSystemName}/tasks/{taskId}")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .resolveTemplate("taskId", id)
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .post(Entity.text(message));
-        try {
-            checkOk(response);
-        } finally {
-            response.close();
-        }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<String> entity = new HttpEntity<>(message, headers);
@@ -181,17 +143,6 @@ public class RemoteTaskMonitorSt implements TaskMonitor {
     public Snapshot takeSnapshot(String projectId) {
         LOGGER.debug("takeSnapshot(fileSystemName={}, projectId={})", fileSystemName, projectId);
 
-        /*Response response = webTarget.path("fileSystems/{fileSystemName}/tasks")
-                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                .queryParam("projectId", projectId)
-                .request(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, token)
-                .get();
-        try {
-            return readEntityIfOk(response, Snapshot.class);
-        } finally {
-            response.close();
-        }*/
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
@@ -263,6 +214,5 @@ public class RemoteTaskMonitorSt implements TaskMonitor {
                 throw new UncheckedIOException(e);
             }
         }
-        //client.close();
     }
 }
