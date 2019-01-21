@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.ProcessingException;
+//import javax.ws.rs.ProcessingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class RemoteAppFileSystemProviderSt implements AppFileSystemProvider {
                             return new AppFileSystem(fileSystemName, true, listenableStorage, taskMonitor);
                         })
                         .collect(Collectors.toList());
-            } catch (ProcessingException e) {
+            } catch (Exception e) {
                 LOGGER.warn(e.toString());
                 return Collections.emptyList();
             }

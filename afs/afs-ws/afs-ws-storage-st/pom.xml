@@ -41,36 +41,15 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
             <scope>provided</scope>
         </dependency>
-        
         <dependency>
     		<groupId>org.springframework.boot</groupId>
     		<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
         
-        
-        <!-- <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-        </dependency>-->
-        <dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-jersey</artifactId>
-		</dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-        
-		<!-- <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.1.1</version>
-        </dependency>-->
-        
         
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -114,12 +93,5 @@
             <artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
             <version>${project.version}</version>
 		</dependency>
-		 <!--   
-		<dependency>
-            <groupId>${project.groupId}</groupId>
-		    <artifactId>powsybl-afs-storage-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>	
--->         
     </dependencies>
 </project>

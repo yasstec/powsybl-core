@@ -6,7 +6,6 @@
  */
 package com.powsybl.afs.ws.storage.st;
 
-import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.powsybl.afs.storage.AfsStorageException;
 import com.powsybl.afs.storage.AppStorage;
@@ -17,10 +16,8 @@ import com.powsybl.afs.storage.buffer.StorageChangeBuffer;
 
 import com.powsybl.afs.ws.server.utils.sb.JsonProviderSB;
 import com.powsybl.afs.ws.utils.AfsRestApi;
-
 import com.powsybl.commons.exceptions.UncheckedInterruptedException;
 import com.powsybl.commons.io.ForwardingInputStream;
-import com.powsybl.commons.io.ForwardingOutputStream;
 import com.powsybl.timeseries.DoubleDataChunk;
 import com.powsybl.timeseries.StringDataChunk;
 import com.powsybl.timeseries.TimeSeriesMetadata;
@@ -38,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AbstractClientHttpRequestFactoryWrapper;
+import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -45,15 +43,10 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 
 import static com.powsybl.afs.ws.client.utils.st.ClientUtilsSt.checkOk;
 import static com.powsybl.afs.ws.client.utils.st.ClientUtilsSt.readEntityIfOk;
@@ -64,7 +57,6 @@ import java.nio.charset.Charset;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import java.util.zip.GZIPOutputStream;
 /**
@@ -658,42 +650,78 @@ public class RemoteAppStorageSt implements AppStorage {
 
         LOGGER.debug("writeBinaryData(fileSystemName={}, nodeId={}, name={})", fileSystemName, nodeId, name);
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
+        headers.add(HttpHeaders.AUTHORIZATION, token);
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(FILE_SYSTEM_NAME, fileSystemName);
+        params.put(NODE_ID, nodeId);
+        params.put("name", name);
+
+        AsyncRestTemplate aRestTemp = new AsyncRestTemplate();
+        MappingJackson2HttpMessageConverter messageConverter = aRestTemp.getMessageConverters().stream()
+                .filter(MappingJackson2HttpMessageConverter.class::isInstance)
+                .map(MappingJackson2HttpMessageConverter.class::cast)
+                .findFirst().orElseThrow(() -> new RuntimeException("MappingJackson2HttpMessageConverter not found"));
+
+        messageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_JSON,
+                MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_STREAM_JSON));
+        messageConverter.getObjectMapper().registerModule(new JsonProviderSB());
+
+        aRestTemp.setMessageConverters(Arrays.asList(messageConverter));
+        aRestTemp.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+        aRestTemp.getMessageConverters().add(1, new ByteArrayHttpMessageConverter());
+        aRestTemp.getMessageConverters().add(2, new ResourceHttpMessageConverter());
+
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
-
-        Client client = ClientBuilder.newClient();
-        AsyncInvoker asyncInvoker = client.target(webTargetTemp.toUriString() + "/" + NODE_DATA_PATH)
-                                .resolveTemplate(FILE_SYSTEM_NAME, fileSystemName)
-                                .resolveTemplate(NODE_ID, nodeId)
-                                .resolveTemplate("name", name)
-                                .request()
-                                .header(HttpHeaders.AUTHORIZATION, token)
-                                //.header(HttpHeaders.CONTENT_ENCODING, "gzip")
-                                //.acceptEncoding("gzip")
-                                .async();
-        return new OutputStreamPutRequest(asyncInvoker);
-    }
-    private static class OutputStreamPutRequest extends ForwardingOutputStream<PipedOutputStream> {
-
-        private final Future<Response> response;
-
-        public OutputStreamPutRequest(AsyncInvoker asyncInvoker) {
-            super(new PipedOutputStream());
-            Objects.requireNonNull(asyncInvoker);
-
-            PipedInputStream pis;
-            try {
-                pis = new PipedInputStream(os);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            StreamingOutput output = os -> ByteStreams.copy(pis, os);
-            response = asyncInvoker.put(Entity.entity(output, MediaType.APPLICATION_OCTET_STREAM_VALUE));
+        URI uri = webTargetTemp
+                .path(NODE_DATA_PATH)
+                .buildAndExpand(params)
+                .toUri();
+        AsyncClientHttpRequest asyncClientHttpRequest = null;
+        try {
+            asyncClientHttpRequest = aRestTemp.getAsyncRequestFactory().createAsyncRequest(uri, HttpMethod.PUT);
+            asyncClientHttpRequest.getHeaders().addAll(headers);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
+        return new OutputStreamPut(asyncClientHttpRequest);
+    }
+    public static class OutputStreamPut extends OutputStream {
+        private ListenableFuture<ClientHttpResponse> response;
+        private AsyncClientHttpRequest asyncClientHttpRequest;
+        public OutputStreamPut(AsyncClientHttpRequest asyncClientHttpRequest) {
+            this.asyncClientHttpRequest = asyncClientHttpRequest;
+        }
+        @Override
+        public void write(byte[] b, int off, int len) {
+            try {
+                asyncClientHttpRequest.getBody().write(b, off, len);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void write(byte[] b) throws IOException {
+            if (asyncClientHttpRequest != null) {
+                asyncClientHttpRequest.getBody().write(b);
+            }
+        }
+        @Override
+        public void write(int b) {
+            try {
+                asyncClientHttpRequest.getBody().write(b);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         @Override
         public void close() throws IOException {
+            super.flush();
+            response = asyncClientHttpRequest.executeAsync();
             super.close();
-            // check the request status after the stream is closed
             try {
                 checkOk(response.get());
             } catch (ExecutionException e) {
@@ -703,23 +731,22 @@ public class RemoteAppStorageSt implements AppStorage {
                 throw new UncheckedInterruptedException(e);
             }
         }
-        private static AfsStorageException createServerErrorException(Response response) {
-            return new AfsStorageException(response.readEntity(String.class));
-        }
-
-        private static AfsStorageException createUnexpectedResponseStatus(Response.Status status) {
-            return new AfsStorageException("Unexpected response status: '" + status + "'");
-        }
-
-        public static void checkOk(Response response) {
-            Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (status != Response.Status.OK) {
-                if (status == Response.Status.INTERNAL_SERVER_ERROR) {
+        public static void checkOk(ClientHttpResponse response) throws IOException {
+            int status = response.getStatusCode().value();
+            if (status != HttpStatus.OK.value()) {
+                if (status == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
                     throw createServerErrorException(response);
                 } else {
-                    throw createUnexpectedResponseStatus(status);
+                    throw createUnexpectedResponseStatus(response.getStatusCode());
                 }
             }
+        }
+        private static AfsStorageException createServerErrorException(ClientHttpResponse response) throws IOException {
+            return new AfsStorageException(response.getStatusText());
+        }
+
+        private static AfsStorageException createUnexpectedResponseStatus(HttpStatus status) {
+            return new AfsStorageException("Unexpected response status: '" + status + "'");
         }
     }
     @Override

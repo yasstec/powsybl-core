@@ -7,11 +7,10 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.PostConstruct;
-import javax.ws.rs.WebApplicationException;
+//import javax.ws.rs.WebApplicationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
@@ -75,7 +74,7 @@ public class AppDataBeanCld extends AppDataBean {
         AppFileSystem fileSystem = getAppData().getFileSystem(name);
         if (fileSystem == null) {
             //throw new WebApplicationException("App file system '" + name + "' not found", HttpStatus.NOT_FOUND.value());
-            throw new WebApplicationException(HttpStatus.NOT_FOUND.value());
+            //throw new WebApplicationException(HttpStatus.NOT_FOUND.value());
         }
         return fileSystem;
     }
