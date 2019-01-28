@@ -6,35 +6,26 @@
  */
 package com.powsybl.iidm.network.impl;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.powsybl.iidm.network.*;
 import com.powsybl.iidm.network.impl.util.Ref;
+import com.powsybl.iidm.network.impl.util.RefObj;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  *
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-class SubstationImpl extends AbstractIdentifiable<Substation> implements Substation {
-
-    private Country country;
-
-    private String tso;
+class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> implements Substation {
 
     private final Ref<NetworkImpl> networkRef;
 
-    private final Set<String> geographicalTags = new LinkedHashSet<>();
-
-    private final Set<VoltageLevelExt> voltageLevels = new LinkedHashSet<>();
-
-    SubstationImpl(String id, String name, Country country, String tso, Ref<NetworkImpl> networkRef) {
-        super(id, name);
-        this.country = country;
-        this.tso = tso;
+    SubstationImpl(SubstationData data, Ref<NetworkImpl> networkRef) {
+        super(data);
         this.networkRef = networkRef;
     }
 
@@ -45,27 +36,27 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
 
     @Override
     public Country getCountry() {
-        return country;
+        return data.getCountry();
     }
 
     @Override
     public SubstationImpl setCountry(Country country) {
         ValidationUtil.checkCountry(this, country);
-        Country oldValue = this.country;
-        this.country = country;
+        Country oldValue = data.getCountry();
+        data.setCountry(country);
         getNetwork().getListeners().notifyUpdate(this, "country", oldValue.toString(), country.toString());
         return this;
     }
 
     @Override
     public String getTso() {
-        return tso;
+        return data.getTso();
     }
 
     @Override
     public SubstationImpl setTso(String tso) {
-        String oldValue = this.tso;
-        this.tso = tso;
+        String oldValue = data.getTso();
+        data.setTso(tso);
         getNetwork().getListeners().notifyUpdate(this, "tso", oldValue, tso);
         return this;
     }
@@ -76,7 +67,7 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
     }
 
     void addVoltageLevel(VoltageLevelExt voltageLevel) {
-        voltageLevels.add(voltageLevel);
+        data.addVoltageLevel(new RefObj<>(voltageLevel));
     }
 
     @Override
@@ -85,13 +76,13 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
     }
 
     @Override
-    public Iterable<VoltageLevel> getVoltageLevels() {
-        return Collections.unmodifiableSet(voltageLevels);
+    public List<VoltageLevel> getVoltageLevels() {
+        return getVoltageLevelStream().collect(Collectors.toList());
     }
 
     @Override
     public Stream<VoltageLevel> getVoltageLevelStream() {
-        return voltageLevels.stream().map(Function.identity());
+        return data.getVoltageLevels().stream().map(Ref::get);
     }
 
     @Override
@@ -100,20 +91,22 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
     }
 
     @Override
-    public Iterable<TwoWindingsTransformer> getTwoWindingsTransformers() {
-        return FluentIterable.from(voltageLevels)
-                .transformAndConcat(vl -> vl.getConnectables(TwoWindingsTransformer.class))
-                .toSet();
+    public List<TwoWindingsTransformer> getTwoWindingsTransformers() {
+        return getTwoWindingsTransformerStream().collect(Collectors.toList());
     }
 
     @Override
     public Stream<TwoWindingsTransformer> getTwoWindingsTransformerStream() {
-        return voltageLevels.stream().flatMap(vl -> vl.getConnectableStream(TwoWindingsTransformer.class)).distinct();
+        return data.getVoltageLevels().stream()
+                .map(Ref::get)
+                .flatMap(vl -> vl.getConnectableStream(TwoWindingsTransformer.class))
+                .distinct();
     }
 
     @Override
     public int getTwoWindingsTransformerCount() {
-        return voltageLevels.stream()
+        return data.getVoltageLevels().stream()
+                .map(Ref::get)
                 .mapToInt(vl -> vl.getConnectableCount(TwoWindingsTransformer.class))
                 .sum();
     }
@@ -124,27 +117,29 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
     }
 
     @Override
-    public Iterable<ThreeWindingsTransformer> getThreeWindingsTransformers() {
-        return FluentIterable.from(voltageLevels)
-                .transformAndConcat(vl -> vl.getConnectables(ThreeWindingsTransformer.class))
-                .toSet();
+    public List<ThreeWindingsTransformer> getThreeWindingsTransformers() {
+        return getThreeWindingsTransformerStream().collect(Collectors.toList());
     }
 
     @Override
     public Stream<ThreeWindingsTransformer> getThreeWindingsTransformerStream() {
-        return voltageLevels.stream().flatMap(vl -> vl.getConnectableStream(ThreeWindingsTransformer.class)).distinct();
+        return data.getVoltageLevels().stream()
+                .map(Ref::get)
+                .flatMap(vl -> vl.getConnectableStream(ThreeWindingsTransformer.class))
+                .distinct();
     }
 
     @Override
     public int getThreeWindingsTransformerCount() {
-        return voltageLevels.stream()
+        return data.getVoltageLevels().stream()
+                .map(Ref::get)
                 .mapToInt(vl -> vl.getConnectableCount(ThreeWindingsTransformer.class))
                 .sum();
     }
 
     @Override
     public Set<String> getGeographicalTags() {
-        return Collections.unmodifiableSet(geographicalTags);
+        return Collections.unmodifiableSet(data.getGeographicalTags());
     }
 
     @Override
@@ -152,7 +147,10 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
         if (tag == null) {
             throw new ValidationException(this, "geographical tag is null");
         }
-        geographicalTags.add(tag);
+        data.setGeographicalTags(ImmutableSet.<String>builder()
+                .addAll(data.getGeographicalTags())
+                .add(tag)
+                .build());
         return this;
     }
 
@@ -165,7 +163,7 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
     public void remove() {
         Substations.checkRemovability(this);
 
-        Set<VoltageLevelExt> vls = new HashSet<>(voltageLevels);
+        Set<VoltageLevelExt> vls = data.getVoltageLevels().stream().map(Ref::get).collect(Collectors.toSet());
         for (VoltageLevelExt vl : vls) {
             // Remove all branches, transformers and HVDC lines
             List<Connectable> connectables = Lists.newArrayList(vl.getConnectables());
@@ -186,13 +184,13 @@ class SubstationImpl extends AbstractIdentifiable<Substation> implements Substat
         }
 
         // Remove this substation from the network
-        getNetwork().getObjectStore().remove(this);
+        getNetwork().getIndex().remove(this);
 
         getNetwork().getListeners().notifyRemoval(this);
     }
 
     void remove(VoltageLevelExt voltageLevelExt) {
         Objects.requireNonNull(voltageLevelExt);
-        voltageLevels.remove(voltageLevelExt);
+        data.removeVoltageLevel(voltageLevelExt);
     }
 }

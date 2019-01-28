@@ -20,13 +20,19 @@ import org.slf4j.LoggerFactory;
  *
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-class ObjectStore {
+class NetworkIndex {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ObjectStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetworkIndex.class);
+
+    private final NetworkDatastore datastore;
 
     private final Map<String, Identifiable<?>> objectsById = new HashMap<>();
 
     private final Map<Class<? extends Identifiable>, Set<Identifiable<?>>> objectsByClass = new HashMap<>();
+
+    public NetworkIndex(NetworkDatastore datastore) {
+        this.datastore = datastore;
+    }
 
     static void checkId(String id) {
         if (id == null || id.isEmpty()) {
@@ -129,7 +135,7 @@ class ObjectStore {
      * @param other the other object store
      * @return list of objects id that exist in both object store organized by class.
      */
-    Multimap<Class<? extends Identifiable>, String> intersection(ObjectStore other) {
+    Multimap<Class<? extends Identifiable>, String> intersection(NetworkIndex other) {
         Multimap<Class<? extends Identifiable>, String> intersection = HashMultimap.create();
         for (Map.Entry<Class<? extends Identifiable>, Set<Identifiable<?>>> entry : other.objectsByClass.entrySet()) {
             Class<? extends Identifiable> clazz = entry.getKey();
@@ -148,7 +154,7 @@ class ObjectStore {
      * other object store is empty.
      * @param other the object store to merge
      */
-    void merge(ObjectStore other) {
+    void merge(NetworkIndex other) {
         for (Identifiable obj : other.objectsById.values()) {
             checkAndAdd(obj);
         }

@@ -11,6 +11,10 @@ import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Substation;
 import com.powsybl.iidm.network.SubstationAdder;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  *
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -61,13 +65,14 @@ class SubstationAdderImpl extends AbstractIdentifiableAdder<SubstationAdderImpl>
     public Substation add() {
         String id = checkAndGetUniqueId();
         ValidationUtil.checkCountry(this, country);
-        SubstationImpl substation = new SubstationImpl(id, getName(), country, tso, networkRef);
+        Set<String> geographicalTag = new LinkedHashSet<>();
         if (tags != null) {
-            for (String tag : tags) {
-                substation.addGeographicalTag(tag);
-            }
+            geographicalTag.addAll(Arrays.asList(tags));
         }
-        getNetwork().getObjectStore().checkAndAdd(substation);
+        SubstationData data = new SubstationData(id, getName(), null, networkRef.get().getDatastore(),
+                                                 country, tso, geographicalTag, new LinkedHashSet<>());
+        SubstationImpl substation = new SubstationImpl(data, networkRef);
+        getNetwork().getIndex().checkAndAdd(substation);
         getNetwork().getListeners().notifyCreation(substation);
         return substation;
     }

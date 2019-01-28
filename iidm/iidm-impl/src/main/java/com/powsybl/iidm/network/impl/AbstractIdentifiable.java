@@ -15,52 +15,47 @@ import java.util.*;
  *
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-abstract class AbstractIdentifiable<I extends Identifiable<I>> extends AbstractExtendable<I> implements Identifiable<I>, Validable {
+abstract class AbstractIdentifiable<I extends Identifiable<I>, D extends IdentifiableData> extends AbstractExtendable<I> implements Identifiable<I>, Validable {
 
-    protected String id;
+    protected D data;
 
-    protected String name;
-
-    protected Properties properties;
-
-    AbstractIdentifiable(String id, String name) {
-        this.id = id;
-        this.name = name;
+    AbstractIdentifiable(D data) {
+        this.data = data;
     }
 
     @Override
     public String getId() {
-        return id;
+        return data.getId();
     }
 
     @Override
     public String getName() {
-        return name != null ? name : id;
+        return data.getName() != null ? data.getName() : data.getId();
     }
 
     protected abstract String getTypeDescription();
 
     @Override
     public String getMessageHeader() {
-        return getTypeDescription() + " '" + id + "': ";
+        return getTypeDescription() + " '" + data.getId() + "': ";
     }
 
     @Override
     public boolean hasProperty() {
-        return properties != null && !properties.isEmpty();
+        return data.getProperties() != null && !data.getProperties().isEmpty();
     }
 
     @Override
     public Properties getProperties() {
-        if (properties == null) {
-            properties = new Properties();
+        if (data.getProperties() == null) {
+            data.setProperties(new Properties());
         }
-        return properties;
+        return data.getProperties();
     }
 
     @Override
     public String toString() {
-        return id;
+        return data.getId();
     }
 
 }
