@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -342,7 +343,9 @@ public class AppStorageServerSB {
             @ApiParam(value = "Node ID") @PathVariable("nodeId") String nodeId) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         Set<String> timeSeriesNames = storage.getTimeSeriesNames(nodeId);
-        return ResponseEntity.ok()/*.header(HttpHeaders.CONTENT_ENCODING, "gzip")*/.body(timeSeriesNames);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .body(timeSeriesNames);
     }
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/{timeSeriesName}", produces = MediaType.TEXT_PLAIN_VALUE)
     @ApiOperation (value = "", response = Boolean.class)
@@ -362,7 +365,9 @@ public class AppStorageServerSB {
                                             @ApiParam(value = "Time series names") @RequestBody Set<String> timeSeriesNames) {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         List<TimeSeriesMetadata> metadataList = storage.getTimeSeriesMetadata(nodeId, timeSeriesNames);
-        return ResponseEntity.ok()/*.header(HttpHeaders.CONTENT_ENCODING, "gzip")*/.body(metadataList);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .body(metadataList);
     }
     @RequestMapping(method = RequestMethod.GET, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/versions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<Integer>> getTimeSeriesDataVersions(@PathVariable("fileSystemName") String fileSystemName,
@@ -391,7 +396,7 @@ public class AppStorageServerSB {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         Map<String, List<DoubleDataChunk>> timeSeriesData = storage.getDoubleTimeSeriesData(nodeId, timeSeriesNames, version);
         return ResponseEntity.ok()
-                //.header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
                 .body(timeSeriesData);
     }
     @RequestMapping(method = RequestMethod.POST, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries/string/{version}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -404,7 +409,7 @@ public class AppStorageServerSB {
         AppStorage storage = appDataBean.getStorage(fileSystemName);
         Map<String, List<StringDataChunk>> timeSeriesData = storage.getStringTimeSeriesData(nodeId, timeSeriesNames, version);
         return ResponseEntity.ok()
-                //.header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                .header(HttpHeaders.CONTENT_ENCODING, "gzip")
                 .body(timeSeriesData);
     }
     @RequestMapping(method = RequestMethod.DELETE, value = "fileSystems/{fileSystemName}/nodes/{nodeId}/timeSeries")

@@ -13,7 +13,6 @@ import com.powsybl.afs.storage.NodeDependency;
 import com.powsybl.afs.storage.NodeGenericMetadata;
 import com.powsybl.afs.storage.NodeInfo;
 import com.powsybl.afs.storage.buffer.StorageChangeBuffer;
-
 import com.powsybl.afs.ws.server.utils.sb.JsonProviderSB;
 import com.powsybl.afs.ws.utils.AfsRestApi;
 import com.powsybl.commons.exceptions.UncheckedInterruptedException;
@@ -23,28 +22,38 @@ import com.powsybl.timeseries.StringDataChunk;
 import com.powsybl.timeseries.TimeSeriesMetadata;
 import com.powsybl.timeseries.TimeSeriesVersions;
 
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.AbstractClientHttpRequestFactoryWrapper;
 import org.springframework.http.client.AsyncClientHttpRequest;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -57,8 +66,10 @@ import java.nio.charset.Charset;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-
 import java.util.zip.GZIPOutputStream;
+
+
+
 /**
  * @author Ali Tahanout <ali.tahanout at rte-france.com>
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
@@ -100,7 +111,7 @@ public class RemoteAppStorageSt implements AppStorage {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -128,12 +139,32 @@ public class RemoteAppStorageSt implements AppStorage {
         }, BUFFER_MAXIMUM_CHANGE, BUFFER_MAXIMUM_SIZE);
     }
     static RestTemplate createClient() {
-        RestTemplate restTemplate = new RestTemplate();
-
-        /*MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
-        messageConverter.getObjectMapper().registerModule(new JsonProviderSB());
-        messageConverter.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON_UTF8, MediaType.APPLICATION_JSON));
-        restTemplate.setMessageConverters(Arrays.asList(messageConverter));*/
+        RestTemplate restTemplate = new RestTemplate() {
+            @Override
+            protected <T extends Object> T doExecute(URI url, HttpMethod method, final RequestCallback requestCallback, final ResponseExtractor<T> responseExtractor) throws RestClientException {
+                return super.doExecute(url, method, new RequestCallback() {
+                    @Override
+                    public void doWithRequest(ClientHttpRequest chr) throws IOException {
+                    	if (method.equals(HttpMethod.GET) || method.equals(HttpMethod.DELETE)) {
+                    		requestCallback.doWithRequest(chr);
+                    	} else {
+	                        ZippedClientHttpRequest chr2 = new ZippedClientHttpRequest(chr);
+	                        if(chr.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).equalsIgnoreCase("gzip")) {
+	                        	requestCallback.doWithRequest(chr2);
+	                        	chr2.closeZip();
+	                        } else {
+	                        	requestCallback.doWithRequest(chr);
+	                        }
+                    	}
+                    }
+                }, new ResponseExtractor<T>() {
+                    @Override
+                    public T extractData(ClientHttpResponse chr) throws IOException {
+                        return responseExtractor.extractData(chr);
+                    }
+                });
+            }
+        };
 
         MappingJackson2HttpMessageConverter messageConverter = restTemplate.getMessageConverters().stream()
                 .filter(MappingJackson2HttpMessageConverter.class::isInstance)
@@ -147,22 +178,8 @@ public class RemoteAppStorageSt implements AppStorage {
         restTemplate.getMessageConverters().add(1, new ByteArrayHttpMessageConverter());
         restTemplate.getMessageConverters().add(2, new ResourceHttpMessageConverter());
 
-        /*
-        List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
-        if (CollectionUtils.isEmpty(interceptors)) {
-            interceptors = new ArrayList<>();
-        }
-        interceptors.add(new RestTemplateHeaderModifierRequestInterceptor());
-        //restTemplate.setInterceptors(interceptors);
-        restTemplate.getInterceptors().add(new RestTemplateHeaderModifierRequestInterceptor());
-        */
-
-        /*SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setBufferRequestBody(false);
-        ClientHttpRequestFactory gzipRequestFactory = new GZipClientHttpRequestFactory(requestFactory);
-        restTemplate.setRequestFactory(gzipRequestFactory);
-        */
-
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build());
+        restTemplate.setRequestFactory(clientHttpRequestFactory);
         return restTemplate;
     }
     static UriComponentsBuilder getWebTarget(URI baseUri) {
@@ -218,6 +235,7 @@ public class RemoteAppStorageSt implements AppStorage {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -295,7 +313,7 @@ public class RemoteAppStorageSt implements AppStorage {
         headers.setContentType(MediaType.TEXT_PLAIN);
         //headers.setAccept(Collections.singletonList(MediaType.TEXT_PLAIN));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(description, headers);
@@ -335,7 +353,7 @@ public class RemoteAppStorageSt implements AppStorage {
         headers.setContentType(MediaType.TEXT_PLAIN);
         headers.setAccept(Collections.singletonList(MediaType.TEXT_PLAIN));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(name, headers);
@@ -375,7 +393,7 @@ public class RemoteAppStorageSt implements AppStorage {
         headers.setContentType(MediaType.TEXT_PLAIN);
         headers.setAccept(Collections.singletonList(MediaType.TEXT_PLAIN));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -422,7 +440,7 @@ public class RemoteAppStorageSt implements AppStorage {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<NodeGenericMetadata> entity = new HttpEntity<>(genericMetadata, headers);
@@ -576,7 +594,7 @@ public class RemoteAppStorageSt implements AppStorage {
         headers.setContentType(MediaType.TEXT_PLAIN);
         headers.setAccept(Collections.singletonList(MediaType.TEXT_PLAIN));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(newParentNodeId, headers);
@@ -920,7 +938,7 @@ public class RemoteAppStorageSt implements AppStorage {
         //headers.setContentType(MediaType.APPLICATION_JSON);
         //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(HttpHeaders.AUTHORIZATION, token);
-        //headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
         //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -1113,8 +1131,9 @@ public class RemoteAppStorageSt implements AppStorage {
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -1190,6 +1209,7 @@ public class RemoteAppStorageSt implements AppStorage {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<Set<String>> entity = new HttpEntity<>(timeSeriesNames, headers);
@@ -1317,6 +1337,7 @@ public class RemoteAppStorageSt implements AppStorage {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<Set<String>> entity = new HttpEntity<>(timeSeriesNames, headers);
@@ -1372,6 +1393,7 @@ public class RemoteAppStorageSt implements AppStorage {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
         headers.add(HttpHeaders.AUTHORIZATION, token);
 
         HttpEntity<Set<String>> entity = new HttpEntity<>(timeSeriesNames, headers);
@@ -1486,141 +1508,47 @@ public class RemoteAppStorageSt implements AppStorage {
     }
 }
 
-/*
-class RestTemplateHeaderModifierRequestInterceptor implements ClientHttpRequestInterceptor {
-    @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        Object encodingRequest = request.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
-        if ( encodingRequest != null && encodingRequest.toString().equals("gzip") && body.length > 0) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            GZIPOutputStream zos = new GZIPOutputStream(baos);
-            zos.write(body);
-            zos.close();
-
-            body = baos.toByteArray().clone();
-        } else {
-            request.getHeaders().remove(HttpHeaders.CONTENT_ENCODING);
-        }
-
-        ClientHttpResponse response = execution.execute(request, body);
-        Object encodingResponse = response.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
-        System.out.println("==================================== LaReponse : " + response.getHeaders().getFirst("TOTO"));
-        if ( encodingResponse != null && encodingResponse.toString().equals("gzip") ) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            //ByteArrayInputStream bais = new ByteArrayInputStream(b);
-
-            GZIPInputStream zis = new GZIPInputStream(response.getBody());
-            byte[] tmpBuffer = new byte[256];
-            int n;
-            while ((n = zis.read(tmpBuffer)) >= 0)
-              baos.write(tmpBuffer, 0, n);
-            zis.close();
-
-            response.getBody().return baos.toByteArray();
-        }
-        return response;
-    }
-}
-*/
-
-class GZipClientHttpRequestFactory extends AbstractClientHttpRequestFactoryWrapper {
-
-    public GZipClientHttpRequestFactory(ClientHttpRequestFactory requestFactory) {
-        super(requestFactory);
-    }
-    @Override
-    protected ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod, ClientHttpRequestFactory requestFactory)  throws IOException {
-        ClientHttpRequest delegate = requestFactory.createRequest(uri, httpMethod);
-
-        if (!httpMethod.equals(HttpMethod.GET)) {
-            return new ZippedClientHttpRequest(delegate);
-        } else {
-            return delegate;
-        }
-    }
-}
-class ZippedClientHttpRequest extends WrapperClientHttpRequest {
+class ZippedClientHttpRequest  implements ClientHttpRequest {
     private GZIPOutputStream zip;
-
+    private final ClientHttpRequest delegate;
     public ZippedClientHttpRequest(ClientHttpRequest delegate) {
-        super(delegate);
-        delegate.getHeaders().add(HttpHeaders.CONTENT_ENCODING, "gzip");
+    	super();
+    	if (delegate==null)
+            throw new IllegalArgumentException("null delegate");
+        this.delegate = delegate;
+        this.delegate.getHeaders().add("Content-Encoding", "gzip");
+        zip=null;
     }
-
     @Override
     public OutputStream getBody() throws IOException {
-        final OutputStream body = super.getBody();
-        zip = new GZIPOutputStream(body);
+    	if (zip == null) {
+    		zip = new GZIPOutputStream(delegate.getBody());
+    	}
         return zip;
     }
-
-    @Override
-    public ClientHttpResponse execute() throws IOException {
+    public void closeZip() throws IOException {
         if (zip != null) {
-            zip.close();
+        	zip.flush();
+        	zip.finish();
+        	zip.close();
+        } else {
+        	this.delegate.getHeaders().remove("Content-Encoding");
         }
-        ClientHttpResponse chr = super.execute();
-        return chr; //super.execute();
     }
-}
-class MaGzipOutputStream extends GZIPOutputStream {
-    private long mySize = 0;
-    public MaGzipOutputStream(OutputStream out) throws IOException {
-        super(out);
-    }
-    @Override
-    public synchronized void write(byte[] buf, int off, int len) throws IOException {
-        super.write(buf, off, len);
-        this.setMySize(len);
-    }
-    public synchronized long getMySize() {
-        System.out.println("--------------------------- SizeZip:6 >> " + this.mySize + this);
-        return this.mySize;
-    }
-    public synchronized void setMySize(int size) {
-        this.mySize = this.mySize + size;
-    }
-}
-class WrapperClientHttpRequest implements ClientHttpRequest {
-
-    private final ClientHttpRequest delegate;
-
-    protected WrapperClientHttpRequest(ClientHttpRequest delegate) {
-        super();
-        if (delegate == null) {
-            throw new IllegalArgumentException("null delegate");
-        }
-        this.delegate = delegate;
-    }
-
-    protected final ClientHttpRequest getDelegate() {
-        return delegate;
-    }
-
-    @Override
-    public OutputStream getBody() throws IOException {
-        return delegate.getBody();
-    }
-
-    @Override
-    public HttpHeaders getHeaders() {
-        return delegate.getHeaders();
-    }
-    @Override
-    public URI getURI() {
-        return delegate.getURI();
-    }
-    @Override
-    public HttpMethod getMethod() {
-        return delegate.getMethod();
-    }
-
     @Override
     public ClientHttpResponse execute() throws IOException {
         return delegate.execute();
     }
-    @Override
-    public String getMethodValue() {
-        return delegate.getMethodValue();
-    }
+	@Override
+	public String getMethodValue() {
+		return delegate.getMethodValue();
+	}
+	@Override
+	public URI getURI() {
+		return delegate.getURI();
+	}
+	@Override
+	public HttpHeaders getHeaders() {
+		return delegate.getHeaders();
+	}
 }

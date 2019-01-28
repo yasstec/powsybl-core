@@ -42,10 +42,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-webflux</artifactId>
+			<groupId>org.springframework.ws</groupId>
+			<artifactId>spring-ws-core</artifactId>
 		</dependency>
-        
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -92,6 +91,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-afs-ws-server-utils-sb</artifactId>
             <version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+    		<groupId>org.apache.httpcomponents</groupId>
+    		<artifactId>httpclient</artifactId>
+    		<version>4.5.6</version>
 		</dependency>
     </dependencies>
 </project>
