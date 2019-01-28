@@ -25,26 +25,18 @@ import com.powsybl.timeseries.TimeSeriesVersions;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AsyncClientHttpRequest;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -145,17 +137,17 @@ public class RemoteAppStorageSt implements AppStorage {
                 return super.doExecute(url, method, new RequestCallback() {
                     @Override
                     public void doWithRequest(ClientHttpRequest chr) throws IOException {
-                    	if (method.equals(HttpMethod.GET) || method.equals(HttpMethod.DELETE)) {
-                    		requestCallback.doWithRequest(chr);
-                    	} else {
-	                        ZippedClientHttpRequest chr2 = new ZippedClientHttpRequest(chr);
-	                        if(chr.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).equalsIgnoreCase("gzip")) {
-	                        	requestCallback.doWithRequest(chr2);
-	                        	chr2.closeZip();
-	                        } else {
-	                        	requestCallback.doWithRequest(chr);
-	                        }
-                    	}
+                        if (method.equals(HttpMethod.GET) || method.equals(HttpMethod.DELETE)) {
+                            requestCallback.doWithRequest(chr);
+                        } else {
+                            ZippedClientHttpRequest chr2 = new ZippedClientHttpRequest(chr);
+                            if (chr.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).equalsIgnoreCase("gzip")) {
+                                requestCallback.doWithRequest(chr2);
+                                chr2.closeZip();
+                            } else {
+                                requestCallback.doWithRequest(chr);
+                            }
+                        }
                     }
                 }, new ResponseExtractor<T>() {
                     @Override
@@ -1512,43 +1504,44 @@ class ZippedClientHttpRequest  implements ClientHttpRequest {
     private GZIPOutputStream zip;
     private final ClientHttpRequest delegate;
     public ZippedClientHttpRequest(ClientHttpRequest delegate) {
-    	super();
-    	if (delegate==null)
+        super();
+        if (delegate == null) {
             throw new IllegalArgumentException("null delegate");
+        }
         this.delegate = delegate;
         this.delegate.getHeaders().add("Content-Encoding", "gzip");
-        zip=null;
+        zip = null;
     }
     @Override
     public OutputStream getBody() throws IOException {
-    	if (zip == null) {
-    		zip = new GZIPOutputStream(delegate.getBody());
-    	}
+        if (zip == null) {
+            zip = new GZIPOutputStream(delegate.getBody());
+        }
         return zip;
     }
     public void closeZip() throws IOException {
         if (zip != null) {
-        	zip.flush();
-        	zip.finish();
-        	zip.close();
+            zip.flush();
+            zip.finish();
+            zip.close();
         } else {
-        	this.delegate.getHeaders().remove("Content-Encoding");
+            this.delegate.getHeaders().remove("Content-Encoding");
         }
     }
     @Override
     public ClientHttpResponse execute() throws IOException {
         return delegate.execute();
     }
-	@Override
-	public String getMethodValue() {
-		return delegate.getMethodValue();
-	}
-	@Override
-	public URI getURI() {
-		return delegate.getURI();
-	}
-	@Override
-	public HttpHeaders getHeaders() {
-		return delegate.getHeaders();
-	}
+    @Override
+    public String getMethodValue() {
+        return delegate.getMethodValue();
+    }
+    @Override
+    public URI getURI() {
+        return delegate.getURI();
+    }
+    @Override
+    public HttpHeaders getHeaders() {
+        return delegate.getHeaders();
+    }
 }
