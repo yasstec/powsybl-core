@@ -22,7 +22,6 @@ import com.powsybl.timeseries.StringDataChunk;
 import com.powsybl.timeseries.TimeSeriesMetadata;
 import com.powsybl.timeseries.TimeSeriesVersions;
 
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -36,7 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AsyncClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -58,6 +56,7 @@ import java.nio.charset.Charset;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 
@@ -152,7 +151,12 @@ public class RemoteAppStorageSt implements AppStorage {
                 }, new ResponseExtractor<T>() {
                     @Override
                     public T extractData(ClientHttpResponse chr) throws IOException {
-                        return responseExtractor.extractData(chr);
+                        if (chr.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING) != null && chr.getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING).equalsIgnoreCase("gzip")) {
+                            DezzipedClientHttpResponse chr2 = new DezzipedClientHttpResponse(chr);
+                            return responseExtractor.extractData(chr2);
+                        } else {
+                            return responseExtractor.extractData(chr);
+                        }
                     }
                 });
             }
@@ -170,8 +174,6 @@ public class RemoteAppStorageSt implements AppStorage {
         restTemplate.getMessageConverters().add(1, new ByteArrayHttpMessageConverter());
         restTemplate.getMessageConverters().add(2, new ResourceHttpMessageConverter());
 
-        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build());
-        restTemplate.setRequestFactory(clientHttpRequestFactory);
         return restTemplate;
     }
     static UriComponentsBuilder getWebTarget(URI baseUri) {
@@ -927,11 +929,10 @@ public class RemoteAppStorageSt implements AppStorage {
         UriComponentsBuilder webTargetTemp = webTarget.cloneBuilder();
 
         HttpHeaders headers = new HttpHeaders();
-        //headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.add(HttpHeaders.AUTHORIZATION, token);
         headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
-        //headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -1543,5 +1544,39 @@ class ZippedClientHttpRequest  implements ClientHttpRequest {
     @Override
     public HttpHeaders getHeaders() {
         return delegate.getHeaders();
+    }
+}
+class DezzipedClientHttpResponse implements ClientHttpResponse {
+    private final ClientHttpResponse delegate;
+    private GZIPInputStream zip;
+    public DezzipedClientHttpResponse(ClientHttpResponse delegate) {
+        super();
+        this.delegate = delegate;
+        this.zip = null;
+    }
+    @Override
+    public InputStream getBody() throws IOException {
+        this.zip = new GZIPInputStream(this.delegate.getBody());
+        return zip;
+    }
+    @Override
+    public HttpHeaders getHeaders() {
+        return this.delegate.getHeaders();
+    }
+    @Override
+    public void close() {
+        this.delegate.close();
+    }
+    @Override
+    public int getRawStatusCode() throws IOException {
+        return this.delegate.getRawStatusCode();
+    }
+    @Override
+    public HttpStatus getStatusCode() throws IOException {
+        return this.delegate.getStatusCode();
+    }
+    @Override
+    public String getStatusText() throws IOException {
+        return this.delegate.getStatusText();
     }
 }
