@@ -377,42 +377,6 @@ class NetworkImpl extends AbstractIdentifiable<Network> implements Network, Vari
         return index.get(id, LoadImpl.class);
     }
 
-    /**
-     * @deprecated Use {@link #getShuntCompensators)} instead.
-     */
-    @Override
-    @Deprecated
-    public Iterable<ShuntCompensator> getShunts() {
-        return getShuntCompensators();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensatorStream()} instead.
-     */
-    @Override
-    @Deprecated
-    public Stream<ShuntCompensator> getShuntStream() {
-        return getShuntCompensatorStream();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensatorCount()} instead.
-     */
-    @Override
-    @Deprecated
-    public int getShuntCount() {
-        return getShuntCompensatorCount();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensator(String)} instead.
-     */
-    @Override
-    @Deprecated
-    public ShuntCompensatorImpl getShunt(String id) {
-        return getShuntCompensator(id);
-    }
-
     @Override
     public Iterable<ShuntCompensator> getShuntCompensators() {
         return Collections.unmodifiableCollection(index.getAll(ShuntCompensatorImpl.class));
@@ -888,10 +852,10 @@ class NetworkImpl extends AbstractIdentifiable<Network> implements Network, Vari
             mergeDanglingLines(lines, dl1, dl2);
         }
 
-        // do not forget to remove the other network from its store!!!
+        // do not forget to remove the other network from its index!!!
         otherNetwork.index.remove(otherNetwork);
 
-        // merge the stores
+        // merge the indexes
         index.merge(otherNetwork.index);
 
         // fix network back reference of the other network objects

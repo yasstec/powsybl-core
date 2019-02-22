@@ -100,7 +100,7 @@ abstract class AbstractVoltageLevel extends AbstractIdentifiable<VoltageLevel> i
 
     @Override
     public <T extends Connectable> T getConnectable(String id, Class<T> aClass) {
-        // the fastest way to get the equipment is to look in the object store
+        // the fastest way to get the equipment is to look in the index
         // and then check if it is connected to this substation
         T connectable = substation.getNetwork().getIndex().get(id, aClass);
         if (connectable == null) {
@@ -198,42 +198,6 @@ abstract class AbstractVoltageLevel extends AbstractIdentifiable<VoltageLevel> i
     @Override
     public int getLoadCount() {
         return getConnectableCount(Load.class);
-    }
-
-    /**
-     * @deprecated Use {@link #newShuntCompensator()} instead.
-     */
-    @Override
-    @Deprecated
-    public ShuntCompensatorAdder newShunt() {
-        return newShuntCompensator();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensatorCount()} instead.
-     */
-    @Override
-    @Deprecated
-    public int getShuntCount() {
-        return getShuntCompensatorCount();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensators()} instead.
-     */
-    @Override
-    @Deprecated
-    public Iterable<ShuntCompensator> getShunts() {
-        return getShuntCompensators();
-    }
-
-    /**
-     * @deprecated Use {@link #getShuntCompensatorStream()} instead.
-     */
-    @Override
-    @Deprecated
-    public Stream<ShuntCompensator> getShuntStream() {
-        return getShuntCompensatorStream();
     }
 
     @Override
