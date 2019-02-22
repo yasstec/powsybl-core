@@ -12,7 +12,10 @@ import com.powsybl.iidm.network.*;
 import com.powsybl.iidm.network.impl.util.Ref;
 import com.powsybl.iidm.network.impl.util.RefObj;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,7 +70,7 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
     }
 
     void addVoltageLevel(VoltageLevelExt voltageLevel) {
-        data.addVoltageLevel(new RefObj<>(voltageLevel));
+        data.addVoltageLevel(voltageLevel.getId());
     }
 
     @Override
@@ -82,7 +85,7 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
 
     @Override
     public Stream<VoltageLevel> getVoltageLevelStream() {
-        return data.getVoltageLevels().stream().map(Ref::get);
+        return data.getVoltageLevelIds().stream().map(id -> getNetwork().getIndex().get(id, VoltageLevel.class));
     }
 
     @Override
@@ -97,16 +100,14 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
 
     @Override
     public Stream<TwoWindingsTransformer> getTwoWindingsTransformerStream() {
-        return data.getVoltageLevels().stream()
-                .map(Ref::get)
+        return getVoltageLevelStream()
                 .flatMap(vl -> vl.getConnectableStream(TwoWindingsTransformer.class))
                 .distinct();
     }
 
     @Override
     public int getTwoWindingsTransformerCount() {
-        return data.getVoltageLevels().stream()
-                .map(Ref::get)
+        return getVoltageLevelStream()
                 .mapToInt(vl -> vl.getConnectableCount(TwoWindingsTransformer.class))
                 .sum();
     }
@@ -123,16 +124,14 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
 
     @Override
     public Stream<ThreeWindingsTransformer> getThreeWindingsTransformerStream() {
-        return data.getVoltageLevels().stream()
-                .map(Ref::get)
+        return getVoltageLevelStream()
                 .flatMap(vl -> vl.getConnectableStream(ThreeWindingsTransformer.class))
                 .distinct();
     }
 
     @Override
     public int getThreeWindingsTransformerCount() {
-        return data.getVoltageLevels().stream()
-                .map(Ref::get)
+        return getVoltageLevelStream()
                 .mapToInt(vl -> vl.getConnectableCount(ThreeWindingsTransformer.class))
                 .sum();
     }
@@ -163,8 +162,8 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
     public void remove() {
         Substations.checkRemovability(this);
 
-        Set<VoltageLevelExt> vls = data.getVoltageLevels().stream().map(Ref::get).collect(Collectors.toSet());
-        for (VoltageLevelExt vl : vls) {
+        Set<VoltageLevel> vls = getVoltageLevelStream().collect(Collectors.toSet());
+        for (VoltageLevel vl : vls) {
             // Remove all branches, transformers and HVDC lines
             List<Connectable> connectables = Lists.newArrayList(vl.getConnectables());
             for (Connectable connectable : connectables) {
@@ -191,6 +190,6 @@ class SubstationImpl extends AbstractIdentifiable<Substation, SubstationData> im
 
     void remove(VoltageLevelExt voltageLevelExt) {
         Objects.requireNonNull(voltageLevelExt);
-        data.removeVoltageLevel(voltageLevelExt);
+        data.removeVoltageLevel(voltageLevelExt.getId());
     }
 }

@@ -17,15 +17,15 @@ public class SubstationData extends IdentifiableData {
 
     private Set<String> geographicalTags;
 
-    private final Set<Ref<VoltageLevelExt>> voltageLevels;
+    private final Set<String> voltageLevelIds;
 
     public SubstationData(String id, String name, Properties properties, NetworkDatastore datastore,
-                          Country country, String tso, Set<String> geographicalTags, Set<Ref<VoltageLevelExt>> voltageLevels) {
+                          Country country, String tso, Set<String> geographicalTags, Set<String> voltageLevelIds) {
         super(id, name, properties, datastore);
         this.country = country;
         this.tso = tso;
         this.geographicalTags = geographicalTags;
-        this.voltageLevels = voltageLevels;
+        this.voltageLevelIds = voltageLevelIds;
     }
 
     public Country getCountry() {
@@ -55,17 +55,17 @@ public class SubstationData extends IdentifiableData {
         datastore.markAsDirty(this);
     }
 
-    public Set<Ref<VoltageLevelExt>> getVoltageLevels() {
-        return voltageLevels;
+    public Set<String> getVoltageLevelIds() {
+        return voltageLevelIds;
     }
 
-    public void addVoltageLevel(Ref<VoltageLevelExt> voltageLevel) {
-        voltageLevels.add(voltageLevel);
+    public void addVoltageLevel(String voltageLevelId) {
+        voltageLevelIds.add(voltageLevelId);
         datastore.markAsDirty(this);
     }
 
-    public void removeVoltageLevel(VoltageLevelExt voltageLevel) {
-        voltageLevels.removeIf(ref -> voltageLevel == ref.get());
+    public void removeVoltageLevel(String voltageLevelId) {
+        voltageLevelIds.remove(voltageLevelId);
         datastore.markAsDirty(this);
     }
 }
