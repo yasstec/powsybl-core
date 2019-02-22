@@ -10,11 +10,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Identifiable;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.PrintStream;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -24,15 +25,9 @@ class NetworkIndex {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkIndex.class);
 
-    private final NetworkDatastore datastore;
-
     private final Map<String, Identifiable<?>> objectsById = new HashMap<>();
 
     private final Map<Class<? extends Identifiable>, Set<Identifiable<?>>> objectsByClass = new HashMap<>();
-
-    public NetworkIndex(NetworkDatastore datastore) {
-        this.datastore = datastore;
-    }
 
     static void checkId(String id) {
         if (id == null || id.isEmpty()) {
@@ -131,9 +126,9 @@ class NetworkIndex {
     }
 
     /**
-     * Compute intersection between this object store and another one.
-     * @param other the other object store
-     * @return list of objects id that exist in both object store organized by class.
+     * Compute intersection between this index and another one.
+     * @param other the other index
+     * @return list of objects id that exist in both indexes organized by class.
      */
     Multimap<Class<? extends Identifiable>, String> intersection(NetworkIndex other) {
         Multimap<Class<? extends Identifiable>, String> intersection = HashMultimap.create();
@@ -150,9 +145,9 @@ class NetworkIndex {
     }
 
     /**
-     * Merge an other object store into this one. At the end of the call the
-     * other object store is empty.
-     * @param other the object store to merge
+     * Merge an other index into this one. At the end of the call the
+     * other index is empty.
+     * @param other the index to merge
      */
     void merge(NetworkIndex other) {
         for (Identifiable obj : other.objectsById.values()) {
@@ -161,12 +156,12 @@ class NetworkIndex {
         other.clean();
     }
 
-    void printForDebug() {
+    void printForDebug(PrintStream out) {
         for (Map.Entry<String, Identifiable<?>> entry : objectsById.entrySet()) {
-            System.out.println(entry.getKey() + " " + System.identityHashCode(entry.getValue()));
+            out.println(entry.getKey() + " " + System.identityHashCode(entry.getValue()));
         }
         for (Map.Entry<Class<? extends Identifiable>, Set<Identifiable<?>>> entry : objectsByClass.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue().stream().map(System::identityHashCode).collect(Collectors.toList()));
+            out.println(entry.getKey() + " " + entry.getValue().stream().map(System::identityHashCode).collect(Collectors.toList()));
         }
     }
 
