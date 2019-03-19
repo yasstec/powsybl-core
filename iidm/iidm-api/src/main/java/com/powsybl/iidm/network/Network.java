@@ -32,6 +32,14 @@ import java.util.stream.Stream;
  */
 public interface Network extends Container<Network> {
 
+    static Network create(String id, String sourceFormat) {
+        return NetworkFactory.create(id, sourceFormat);
+    }
+
+    static Network load(NetworkStore store) {
+        return NetworkFactory.load(store);
+    }
+
     /**
      * A global bus/breaker view of the network.
      * <p>

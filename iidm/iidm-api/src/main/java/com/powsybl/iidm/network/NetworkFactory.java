@@ -21,16 +21,24 @@ import java.util.List;
 public final class NetworkFactory {
 
     private static final ServiceLoaderCache<NetworkFactoryService> LOADER
-            = new ServiceLoaderCache(NetworkFactoryService.class);
+            = new ServiceLoaderCache<>(NetworkFactoryService.class);
 
     private NetworkFactory() {
     }
 
-    public static Network create(String id, String sourceFormat) {
+    private static NetworkFactoryService loadService() {
         List<NetworkFactoryService> services = LOADER.getServices();
         if (services.isEmpty()) {
             throw new PowsyblException("No IIDM implementation found");
         }
-        return services.get(0).createNetwork(id, sourceFormat);
+        return services.get(0);
+    }
+
+    public static Network create(String id, String sourceFormat) {
+        return loadService().createNetwork(id, sourceFormat);
+    }
+
+    public static Network load(NetworkStore store) {
+        return loadService().loadNetwork(store);
     }
 }

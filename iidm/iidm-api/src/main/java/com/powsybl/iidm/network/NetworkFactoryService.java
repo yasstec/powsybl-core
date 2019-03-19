@@ -13,4 +13,8 @@ package com.powsybl.iidm.network;
 public interface NetworkFactoryService {
 
     Network createNetwork(String id, String sourceFormat);
+
+    default Network loadNetwork(NetworkStore store) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 }
