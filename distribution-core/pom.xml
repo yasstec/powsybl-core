@@ -161,6 +161,12 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>powsybl-cgmes-loadflow</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-cgmes-model</artifactId>
             <version>${project.version}</version>
         </dependency>

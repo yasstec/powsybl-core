@@ -68,6 +68,10 @@ public class CgmesModelTripleStore extends AbstractCgmesModel {
 
     // Queries
 
+    public PropertyBags modelProfiles() {
+        return namedQuery(MODEL_PROFILES);
+    }
+
     @Override
     public boolean hasEquipmentCore() {
         if (queryCatalog.containsKey(MODEL_PROFILES)) {
