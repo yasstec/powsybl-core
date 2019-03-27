@@ -271,9 +271,9 @@ public class RunLoadflowCgmesTool implements Tool {
         writer.write("    <md:Model.modelingAuthoritySet>powsybl</md:Model.modelingAuthoritySet>\n");
         writer.write("    <md:Model.profile>http://entsoe.eu/CIM/StateVariables/4/1</md:Model.profile>\n");
         writer.write("    <md:Model.version>" + version + "</md:Model.version>\n");
-        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/EquipmentCore/")).findFirst().map(p -> p.getId(FULL_MODEL))));
-        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/Topology/")).findFirst().map(p -> p.getId(FULL_MODEL))));
-        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/SteadyStateHypothesis/")).findFirst().map(p -> p.getId(FULL_MODEL))));
+        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/EquipmentCore/")).findFirst().map(p -> p.getId(FULL_MODEL)).orElse("MISSING_EQ")));
+        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/Topology/")).findFirst().map(p -> p.getId(FULL_MODEL)).orElse("MISSING_TP")));
+        writer.write(String.format(DEPENDING_MODEL, properties.stream().filter(p -> p.get(PROFILE) != null && p.get(PROFILE).contains("/SteadyStateHypothesis/")).findFirst().map(p -> p.getId(FULL_MODEL)).orElse("MISSING_SSH")));
         writer.write("  </md:FullModel>\n");
     }
 
