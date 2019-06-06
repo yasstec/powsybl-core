@@ -472,7 +472,7 @@
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>package-zip</goal>
+                            <goal>package</goal>
                         </goals>
                     </execution>
                 </executions>
