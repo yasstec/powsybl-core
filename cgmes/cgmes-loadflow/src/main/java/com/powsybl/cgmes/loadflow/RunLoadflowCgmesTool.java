@@ -87,12 +87,12 @@ public class RunLoadflowCgmesTool implements Tool {
 
             @Override
             public String getTheme() {
-                return "Computation";
+                return "CGMES validation";
             }
 
             @Override
             public String getDescription() {
-                return "Run loadflow";
+                return "Import CGMES, generate SV file, run loadflow and generate another SV file";
             }
 
             @Override
