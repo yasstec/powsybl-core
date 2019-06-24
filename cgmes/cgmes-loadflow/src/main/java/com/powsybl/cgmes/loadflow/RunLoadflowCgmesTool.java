@@ -1,9 +1,10 @@
-package com.powsybl.cgmes.loadflow; /**
+/**
  * Copyright (c) 2019, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+package com.powsybl.cgmes.loadflow;
 
 import com.google.auto.service.AutoService;
 import com.powsybl.cgmes.conversion.CgmesModelExtension;
@@ -14,8 +15,7 @@ import com.powsybl.commons.io.table.*;
 import com.powsybl.iidm.export.Exporters;
 import com.powsybl.iidm.import_.ImportConfig;
 import com.powsybl.iidm.import_.Importers;
-import com.powsybl.iidm.network.Bus;
-import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.*;
 import com.powsybl.iidm.network.util.Networks;
 import com.powsybl.iidm.tools.ConversionToolUtils;
 import com.powsybl.loadflow.LoadFlow;
@@ -34,18 +34,15 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Properties;
+import java.util.*;
 
 import static com.powsybl.iidm.tools.ConversionToolUtils.*;
 
@@ -62,7 +59,8 @@ public class RunLoadflowCgmesTool implements Tool {
     private static final String SKIP_POSTPROC = "skip-postproc";
     private static final String OUTPUT_CASE_FORMAT = "output-case-format";
     private static final String OUTPUT_CASE_FILE = "output-case-file";
-    private static final String OUTPUT_SV_FILE = "output-sv-file";
+    private static final String OUTPUT_SV_FOLDER = "output-sv-folder";
+    private static final String BASE_NAME = "base-name";
 
     private static final String DEPENDING_MODEL = "    <md:Model.DependentOn rdf:resource=\"%s\"/>%n";
     private static final String FULL_MODEL = "FullModel";
@@ -128,10 +126,16 @@ public class RunLoadflowCgmesTool implements Tool {
                         .hasArg()
                         .argName("FILE")
                         .build());
-                options.addOption(Option.builder().longOpt(OUTPUT_SV_FILE)
+                options.addOption(Option.builder().longOpt(OUTPUT_SV_FOLDER)
                         .desc("location for generated SV file")
                         .hasArg()
                         .argName("FILE")
+                        .build());
+                options.addOption(Option.builder().longOpt(BASE_NAME)
+                        .desc("the file name")
+                        .hasArg()
+                        .argName("FILE BASE NAME")
+                        .required()
                         .build());
                 options.addOption(createImportParametersFileOption());
                 options.addOption(createImportParameterOption());
@@ -154,7 +158,8 @@ public class RunLoadflowCgmesTool implements Tool {
         Path outputFile = null;
         Format format = null;
         Path outputCaseFile = null;
-        String outputSvFile = null;
+        String outputSvFolder = null;
+        String baseName = null;
         ComponentDefaultConfig defaultConfig = ComponentDefaultConfig.load();
 
         ImportConfig importConfig = (!skipPostProc) ? ImportConfig.load() : new ImportConfig();
@@ -174,8 +179,9 @@ public class RunLoadflowCgmesTool implements Tool {
             }
         }
 
-        if (line.hasOption(OUTPUT_SV_FILE)) {
-            outputSvFile = line.getOptionValue(OUTPUT_SV_FILE);
+        if (line.hasOption(OUTPUT_SV_FOLDER)) {
+            outputSvFolder = line.getOptionValue(OUTPUT_SV_FOLDER);
+            baseName = Objects.requireNonNull(line.getOptionValue(BASE_NAME));
         }
 
         context.getOutputStream().println("Loading network '" + caseFile + "'");
@@ -185,8 +191,10 @@ public class RunLoadflowCgmesTool implements Tool {
             throw new PowsyblException("Case '" + caseFile + "' not found");
         }
 
-        if (outputSvFile != null) {
-            try (Writer writer = Files.newBufferedWriter(context.getFileSystem().getPath(outputSvFile + "_before_lf.xml"), StandardCharsets.UTF_8)) {
+        if (outputSvFolder != null) {
+            Path dir = Paths.get(outputSvFolder).resolve("2");
+            Files.createDirectories(dir);
+            try (Writer writer = Files.newBufferedWriter(dir.resolve(baseName + ".xml"), StandardCharsets.UTF_8)) {
                 writeSvFile(network, "002", writer);
             }
         }
@@ -214,8 +222,10 @@ public class RunLoadflowCgmesTool implements Tool {
             Exporters.export(outputCaseFormat, network, outputParams, outputCaseFile);
         }
 
-        if (outputSvFile != null && result.isOk()) {
-            try (Writer writer = Files.newBufferedWriter(context.getFileSystem().getPath(outputSvFile + "_after_lf.xml"), StandardCharsets.UTF_8)) {
+        if (outputSvFolder != null && result.isOk()) {
+            Path dir = Paths.get(outputSvFolder).resolve("3");
+            Files.createDirectories(dir);
+            try (Writer writer = Files.newBufferedWriter(dir.resolve(baseName + ".xml"), StandardCharsets.UTF_8)) {
                 writeSvFile(network, "003", writer);
             }
         }
@@ -229,7 +239,7 @@ public class RunLoadflowCgmesTool implements Tool {
         if (cgmesModelExtension != null) {
             writerHeader(writer);
             writeFullModel(cgmesModelExtension, version, writer);
-            writeAngleTension(network, writer);
+            writeAngleTension(cgmesModelExtension, writer);
             writer.write("</rdf:RDF>");
         }
     }
@@ -273,16 +283,20 @@ public class RunLoadflowCgmesTool implements Tool {
         writer.write("  </md:FullModel>\n");
     }
 
-    private void writeAngleTension(Network network, Writer writer) throws IOException {
+    private void writeAngleTension(CgmesModelExtension cgmesModelExtension, Writer writer) throws IOException {
         int counter = 0;
-        for (Bus bus : network.getBusBreakerView().getBuses()) {
-            if (!Double.isNaN(bus.getV()) || !Double.isNaN(bus.getAngle())) {
-                writer.write(String.format("  <cim:SvVoltage rdf:ID=\"%d\">%n", counter));
-                writer.write(String.format("    <cim:SvVoltage.angle>%.2f</cim:SvVoltage.angle>%n", bus.getAngle()));
-                writer.write(String.format("    <cim:SvVoltage.v>%.2f</cim:SvVoltage.v>%n", bus.getV()));
-                writer.write(String.format("    <cim:SvVoltage.TopologicalNode rdf:resource=\"#%s\" />%n", bus.getId()));
-                writer.write("  </cim:SvVoltage>\n");
-                counter++;
+        for (PropertyBag p : cgmesModelExtension.getCgmesModel().topologicalNodes()) {
+            Terminal t = cgmesModelExtension.getConversion().getContext().terminalMapping().findFromTopologicalNode(p.getId("TopologicalNode"));
+            if (t != null) {
+                Bus bus = t.getBusBreakerView().getBus();
+                if (bus != null) {
+                    writer.write(String.format("  <cim:SvVoltage rdf:ID=\"%d\">%n", counter));
+                    writer.write(String.format("    <cim:SvVoltage.angle>%s</cim:SvVoltage.angle>%n", NumberFormat.getInstance(Locale.US).format(bus.getAngle())));
+                    writer.write(String.format("    <cim:SvVoltage.v>%s</cim:SvVoltage.v>%n", NumberFormat.getInstance(Locale.US).format(bus.getV())));
+                    writer.write(String.format("    <cim:SvVoltage.TopologicalNode rdf:resource=\"#%s\" />%n", p.getId("TopologicalNode")));
+                    writer.write("  </cim:SvVoltage>\n");
+                    counter++;
+                }
             }
         }
     }

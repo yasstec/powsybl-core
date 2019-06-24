@@ -98,11 +98,12 @@ public class CgmesImport implements Importer {
     @Override
     public Network importData(ReadOnlyDataSource ds, NetworkFactory networkFactory, Properties p) {
         CgmesModel cgmes = CgmesModelFactory.create(ds, boundary(p), tripleStore(p));
-        Network network = new Conversion(cgmes, config(p), activatedPostProcessors(p), networkFactory).convert();
+        Conversion conversion = new Conversion(cgmes, config(p), activatedPostProcessors(p), networkFactory);
+        Network network = conversion.convert();
         if (storeCgmesModelAsNetworkExtension(p)) {
             // Store a reference to the original CGMES model inside the IIDM network
             // We could also add listeners to be aware of changes in IIDM data
-            network.addExtension(CgmesModelExtension.class, new CgmesModelExtension(cgmes));
+            network.addExtension(CgmesModelExtension.class, new CgmesModelExtension(cgmes, conversion));
         }
         return network;
     }

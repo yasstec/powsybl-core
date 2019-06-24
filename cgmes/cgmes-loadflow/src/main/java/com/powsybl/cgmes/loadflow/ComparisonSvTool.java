@@ -29,6 +29,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,8 +106,8 @@ public class ComparisonSvTool implements Tool {
         double angle3 = Double.NaN;
     }
 
-    private static void addFile(String folder, String file, Map<String, Triplet> results, BiConsumer<Triplet, PropertyBag> consumer) {
-        ReadOnlyDataSource ds = new FileDataSource(Paths.get(folder), file);
+    private static void addFile(Path folder, String file, Map<String, Triplet> results, BiConsumer<Triplet, PropertyBag> consumer) {
+        ReadOnlyDataSource ds = new FileDataSource(folder, file);
         CgmesModelTripleStore cgmes = CgmesModelFactory.create(ds, "rdf4j");
         PropertyBags bags = cgmes.namedQuery("voltages");
         for (PropertyBag p : bags) {
@@ -120,15 +121,15 @@ public class ComparisonSvTool implements Tool {
 
         String folder = line.getOptionValue(SV_FOLDER);
         String baseName = line.getOptionValue(BASE_NAME);
-        addFile(folder, baseName, results, (triplet, p) -> {
+        addFile(Paths.get(folder).resolve("1"), baseName, results, (triplet, p) -> {
             triplet.v1 = p.asDouble(V);
             triplet.angle1 = p.asDouble(ANGLE);
         });
-        addFile(folder, baseName + "_before_lf", results, (triplet, p) -> {
+        addFile(Paths.get(folder).resolve("2"), baseName, results, (triplet, p) -> {
             triplet.v2 = p.asDouble(V);
             triplet.angle2 = p.asDouble(ANGLE);
         });
-        addFile(folder, baseName + "_after_lf", results, (triplet, p) -> {
+        addFile(Paths.get(folder).resolve("3"), baseName, results, (triplet, p) -> {
             triplet.v3 = p.asDouble(V);
             triplet.angle3 = p.asDouble(ANGLE);
         });
