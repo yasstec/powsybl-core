@@ -69,7 +69,7 @@ public class Conversion {
             throw new CgmesModelException("Data source does not contain EquipmentCore data");
         }
         Network network = createNetwork();
-        Context context = createContext(network);
+        context = createContext(network);
         assignNetworkProperties(context);
 
         Function<PropertyBag, AbstractObjectConversion> convf;
@@ -307,6 +307,10 @@ public class Conversion {
         profiling.end("debugTopology");
     }
 
+    public Context getContext() {
+        return context;
+    }
+
     public static class Config {
 
         public enum StateProfile {
@@ -416,6 +420,7 @@ public class Conversion {
     }
 
     private final CgmesModel cgmes;
+    private Context context;
     private final Config config;
     private final List<CgmesImportPostProcessor> postProcessors;
     private final NetworkFactory networkFactory;
