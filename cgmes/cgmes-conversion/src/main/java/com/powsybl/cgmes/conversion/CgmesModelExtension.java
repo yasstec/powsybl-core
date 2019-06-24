@@ -18,13 +18,19 @@ import com.powsybl.iidm.network.Network;
 public class CgmesModelExtension extends AbstractExtension<Network> {
 
     private final CgmesModel cgmes;
+    private final Conversion conversion;
 
-    public CgmesModelExtension(CgmesModel cgmes) {
+    public CgmesModelExtension(CgmesModel cgmes, Conversion conversion) {
         this.cgmes = Objects.requireNonNull(cgmes);
+        this.conversion = Objects.requireNonNull(conversion);
     }
 
     public CgmesModel getCgmesModel() {
         return cgmes;
+    }
+
+    public Conversion getConversion() {
+        return conversion;
     }
 
     @Override
