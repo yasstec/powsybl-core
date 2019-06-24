@@ -135,7 +135,6 @@ public class RunLoadflowCgmesTool implements Tool {
                         .desc("the file name")
                         .hasArg()
                         .argName("FILE BASE NAME")
-                        .required()
                         .build());
                 options.addOption(createImportParametersFileOption());
                 options.addOption(createImportParameterOption());
@@ -230,7 +229,9 @@ public class RunLoadflowCgmesTool implements Tool {
             }
         }
 
-        Networks.printBalanceSummary("", network, new OutputStreamWriter(context.getOutputStream()));
+        try (Writer writer1 = new OutputStreamWriter(context.getOutputStream())) {
+            Networks.printBalanceSummary("", network, writer1);
+        }
     }
 
     private void writeSvFile(Network network, String version, Writer writer) throws IOException {
