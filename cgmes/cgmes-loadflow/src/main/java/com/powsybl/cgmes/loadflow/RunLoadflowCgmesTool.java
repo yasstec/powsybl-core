@@ -289,7 +289,7 @@ public class RunLoadflowCgmesTool implements Tool {
         for (PropertyBag p : cgmesModelExtension.getCgmesModel().topologicalNodes()) {
             Terminal t = cgmesModelExtension.getConversion().getContext().terminalMapping().findFromTopologicalNode(p.getId("TopologicalNode"));
             if (t != null) {
-                Bus bus = t.getBusBreakerView().getBus();
+                Bus bus = t.getBusBreakerView().getConnectableBus();
                 if (bus != null) {
                     writer.write(String.format("  <cim:SvVoltage rdf:ID=\"%d\">%n", counter));
                     writer.write(String.format("    <cim:SvVoltage.angle>%s</cim:SvVoltage.angle>%n", NumberFormat.getInstance(Locale.US).format(bus.getAngle())));
