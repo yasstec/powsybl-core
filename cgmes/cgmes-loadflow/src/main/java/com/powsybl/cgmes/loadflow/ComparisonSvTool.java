@@ -160,7 +160,7 @@ public class ComparisonSvTool implements Tool {
                             triplet.voltageLevelId = t.getVoltageLevel().getId();
                             triplet.busId = t.getBusBreakerView().getConnectableBus().getId();
                             triplet.equipmentId = t.getConnectable().getId();
-                            triplet.connectedComponentNumber = t.getBusBreakerView().getConnectableBus().getConnectedComponent().getNum();
+                            triplet.connectedComponentNumber = bus.getConnectedComponent() != null ? bus.getConnectedComponent().getNum() : 0;
                             return triplet;
                         });
                     }
