@@ -197,16 +197,28 @@ public class ComparisonSvTool implements Tool {
                     new Column("v_after_lf"),
                     new Column(ANGLE),
                     new Column("angle_after_import"),
-                    new Column("angle_after_lf"))) {
+                    new Column("angle_after_lf"),
+                    new Column("diff_v_after_import"),
+                    new Column("diff_v_after_lf"),
+                    new Column("diff_angle_after_import"),
+                    new Column("diff_angle_after_lf"))) {
                 results.forEach((id, triplet) -> {
                     try {
                         formatter.writeCell(id);
+                        formatter.writeCell(triplet.voltageLevelId);
+                        formatter.writeCell(triplet.busId);
+                        formatter.writeCell(triplet.equipmentId);
+                        formatter.writeCell(triplet.connectedComponentNumber);
                         formatter.writeCell(triplet.v1);
                         formatter.writeCell(triplet.v2);
                         formatter.writeCell(triplet.v3);
                         formatter.writeCell(triplet.angle1);
                         formatter.writeCell(triplet.angle2);
                         formatter.writeCell(triplet.angle3);
+                        formatter.writeCell(triplet.v2 - triplet.v1);
+                        formatter.writeCell(triplet.v3 - triplet.v1);
+                        formatter.writeCell(triplet.angle2 - triplet.angle1);
+                        formatter.writeCell(triplet.angle3 - triplet.angle1);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
