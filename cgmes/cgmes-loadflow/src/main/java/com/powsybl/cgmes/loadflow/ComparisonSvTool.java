@@ -7,14 +7,22 @@
 package com.powsybl.cgmes.loadflow;
 
 import com.google.auto.service.AutoService;
+import com.powsybl.cgmes.conversion.CgmesModelExtension;
 import com.powsybl.cgmes.model.CgmesModelFactory;
 import com.powsybl.cgmes.model.triplestore.CgmesModelTripleStore;
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.commons.datasource.FileDataSource;
 import com.powsybl.commons.datasource.ReadOnlyDataSource;
 import com.powsybl.commons.io.table.Column;
 import com.powsybl.commons.io.table.CsvTableFormatterFactory;
 import com.powsybl.commons.io.table.TableFormatter;
 import com.powsybl.commons.io.table.TableFormatterConfig;
+import com.powsybl.iidm.import_.ImportConfig;
+import com.powsybl.iidm.import_.Importers;
+import com.powsybl.iidm.network.Bus;
+import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.Terminal;
+import com.powsybl.iidm.tools.ConversionToolUtils;
 import com.powsybl.tools.Command;
 import com.powsybl.tools.Tool;
 import com.powsybl.tools.ToolRunningContext;
@@ -33,7 +41,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.BiConsumer;
+
+import static com.powsybl.iidm.tools.ConversionToolUtils.readProperties;
 
 /**
  * @author Miora Ralambotiana <miora.ralambotiana at rte-france.com>
@@ -41,12 +52,14 @@ import java.util.function.BiConsumer;
 @AutoService(Tool.class)
 public class ComparisonSvTool implements Tool {
 
+    private static final String CASE_FILE = "case-file";
     private static final String SV_FOLDER = "sv-folder";
     private static final String BASE_NAME = "base-name";
     private static final String OUTPUT_FILE = "output-file";
 
     private static final String V = "v";
     private static final String ANGLE = "angle";
+    private static final String TOPOLOGICAL_NODE = "TopologicalNode";
 
     @Override
     public Command getCommand() {
@@ -69,6 +82,11 @@ public class ComparisonSvTool implements Tool {
             @Override
             public Options getOptions() {
                 Options options = new Options();
+                options.addOption(Option.builder().longOpt(CASE_FILE)
+                        .desc("the case path")
+                        .hasArg()
+                        .argName("FILE")
+                        .build());
                 options.addOption(Option.builder().longOpt(SV_FOLDER)
                         .desc("the folder containing sv files to be compared")
                         .hasArg()
@@ -98,6 +116,10 @@ public class ComparisonSvTool implements Tool {
     }
 
     static class Triplet {
+        String voltageLevelId = "";
+        String busId = "";
+        String equipmentId = "";
+        int connectedComponentNumber = 0;
         double v1 = Double.NaN;
         double v2 = Double.NaN;
         double v3 = Double.NaN;
@@ -111,13 +133,40 @@ public class ComparisonSvTool implements Tool {
         CgmesModelTripleStore cgmes = CgmesModelFactory.create(ds, "rdf4j");
         PropertyBags bags = cgmes.namedQuery("voltages");
         for (PropertyBag p : bags) {
-            consumer.accept(results.computeIfAbsent(p.getId("TopologicalNode"), s -> new Triplet()), p);
+            consumer.accept(results.computeIfAbsent(p.getId(TOPOLOGICAL_NODE), s -> new Triplet()), p);
         }
     }
 
     @Override
     public void run(CommandLine line, ToolRunningContext context) throws IOException {
         Map<String, Triplet> results = new HashMap<>();
+
+        if (line.hasOption(CASE_FILE)) {
+            Path caseFile = context.getFileSystem().getPath(line.getOptionValue(CASE_FILE));
+            context.getOutputStream().println("Loading network '" + caseFile + "'");
+            Properties inputParams = readProperties(line, ConversionToolUtils.OptionType.IMPORT, context);
+            Network network = Importers.loadNetwork(caseFile, context.getShortTimeExecutionComputationManager(), new ImportConfig(), inputParams);
+            if (network == null) {
+                throw new PowsyblException("Case '" + caseFile + "' not found");
+            }
+            CgmesModelExtension cgmesModelExtension = network.getExtension(CgmesModelExtension.class);
+            for (PropertyBag p : cgmesModelExtension.getCgmesModel().topologicalNodes()) {
+                Terminal t = cgmesModelExtension.getConversion().getContext().terminalMapping().findFromTopologicalNode(p.getId(TOPOLOGICAL_NODE));
+                if (t != null) {
+                    Bus bus = t.getBusBreakerView().getConnectableBus();
+                    if (bus != null) {
+                        results.computeIfAbsent(p.getId(TOPOLOGICAL_NODE), s -> {
+                            Triplet triplet = new Triplet();
+                            triplet.voltageLevelId = t.getVoltageLevel().getId();
+                            triplet.busId = t.getBusBreakerView().getConnectableBus().getId();
+                            triplet.equipmentId = t.getConnectable().getId();
+                            triplet.connectedComponentNumber = t.getBusBreakerView().getConnectableBus().getConnectedComponent().getNum();
+                            return triplet;
+                        });
+                    }
+                }
+            }
+        }
 
         String folder = line.getOptionValue(SV_FOLDER);
         String baseName = line.getOptionValue(BASE_NAME);
@@ -139,6 +188,10 @@ public class ComparisonSvTool implements Tool {
                     "Results",
                     TableFormatterConfig.load(),
                     new Column("Topological Node"),
+                    new Column("VL ID"),
+                    new Column("IIDM bus ID"),
+                    new Column("Equipment ID"),
+                    new Column("numcnx"),
                     new Column(V),
                     new Column("v_after_import"),
                     new Column("v_after_lf"),
