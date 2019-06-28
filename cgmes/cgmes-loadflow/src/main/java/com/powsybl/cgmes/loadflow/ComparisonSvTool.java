@@ -128,6 +128,8 @@ public class ComparisonSvTool implements Tool {
         double angle3 = Double.NaN;
     }
 
+    double[] diffAngle = new double[1];
+
     private static void addFile(Path folder, String file, Map<String, Triplet> results, BiConsumer<Triplet, PropertyBag> consumer) {
         ReadOnlyDataSource ds = new FileDataSource(folder, file);
         CgmesModelTripleStore cgmes = CgmesModelFactory.create(ds, "rdf4j");
@@ -140,6 +142,7 @@ public class ComparisonSvTool implements Tool {
     @Override
     public void run(CommandLine line, ToolRunningContext context) throws IOException {
         Map<String, Triplet> results = new HashMap<>();
+        diffAngle[0] = 0;
 
         if (line.hasOption(CASE_FILE)) {
             Path caseFile = context.getFileSystem().getPath(line.getOptionValue(CASE_FILE));
@@ -181,6 +184,9 @@ public class ComparisonSvTool implements Tool {
         addFile(Paths.get(folder).resolve("3"), baseName, results, (triplet, p) -> {
             triplet.v3 = p.asDouble(V);
             triplet.angle3 = p.asDouble(ANGLE);
+            if (p.asDouble(ANGLE) == 0) {
+                diffAngle[0] = triplet.angle3 - triplet.angle2;
+            }
         });
 
         try (Writer writer = Files.newBufferedWriter(context.getFileSystem().getPath(line.getOptionValue(OUTPUT_FILE)), StandardCharsets.UTF_8)) {
@@ -218,7 +224,7 @@ public class ComparisonSvTool implements Tool {
                         formatter.writeCell(triplet.v2 - triplet.v1);
                         formatter.writeCell(triplet.v3 - triplet.v1);
                         formatter.writeCell(triplet.angle2 - triplet.angle1);
-                        formatter.writeCell(triplet.angle3 - triplet.angle1);
+                        formatter.writeCell(triplet.angle3 - triplet.angle1 - diffAngle[0]);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
