@@ -20,6 +20,7 @@ import com.powsybl.cgmes.conformity.test.CgmesConformity1Catalog;
 import com.powsybl.cgmes.conformity.test.CgmesConformity1ModifiedCatalog;
 import com.powsybl.cgmes.conversion.CgmesImport;
 import com.powsybl.commons.config.InMemoryPlatformConfig;
+import com.powsybl.commons.config.PlatformConfig;
 
 /**
  * @author Luma Zamarreño <zamarrenolm at aia.es>
@@ -158,6 +159,38 @@ public class CgmesConformity1ModifiedConversionTest {
     }
 
     @Test
+    public void microBESvInjection() {
+        Network network = new CgmesImport(platformConfig)
+                .importData(catalogModified.microGridBaseCaseBEWithSvInjection().dataSource(),
+                        NetworkFactory.findDefault(), null);
+
+        Load load = network.getLoad("SvInjection1");
+        assertNotNull(load);
+        assertEquals(-0.2, load.getP0(), 0.0);
+        assertEquals(-13.8, load.getQ0(), 0.0);
+
+        Load load2 = network.getLoad("SvInjection2");
+        assertNotNull(load2);
+        assertEquals(-0.2, load2.getP0(), 0.0);
+        assertEquals(0.0, load2.getQ0(), 0.0);
+
+        Load load3 = network.getLoad("SvInjection3");
+        assertNotNull(load3);
+        assertEquals(-0.2, load3.getP0(), 0.0);
+        assertEquals(-13.8, load3.getQ0(), 0.0);
+    }
+
+    @Test
+    public void microBEInvalidSvInjection() {
+        Network network = new CgmesImport(platformConfig)
+                .importData(catalogModified.microGridBaseCaseBEInvalidSvInjection().dataSource(),
+                        NetworkFactory.findDefault(), null);
+
+        Load load = network.getLoad("SvInjection1");
+        assertNull(load);
+    }
+
+    @Test
     public void miniBusBranchRtcRemoteRegulation() {
         Network network = new CgmesImport(platformConfig).importData(catalogModified.miniBusBranchRtcRemoteRegulation().dataSource(), null);
 
@@ -224,24 +257,20 @@ public class CgmesConformity1ModifiedConversionTest {
     }
 
     @Test
-    public void miniNodeBreakerInvalidT2w() {
-        platformConfig.createModuleConfig("import-export-parameters-default-value")
-                .setStringProperty("iidm.import.cgmes.convert-boundary", "true");
+    public void miniNodeBreakerSvInjection() {
+        Network network = new CgmesImport(platformConfig)
+                .importData(catalogModified.miniNodeBreakerSvInjection().dataSource(),
+                        NetworkFactory.findDefault(), null);
 
-        Network network = new CgmesImport(platformConfig).importData(catalog.miniNodeBreaker().dataSource(),
-                NetworkFactory.findDefault(), null);
-        TwoWindingsTransformer transformer = network.getTwoWindingsTransformer("_ceb5d06a-a7ff-4102-a620-7f3ea5fb4a51");
-        assertNotNull(transformer);
-
-        Network invalidNetwork = new CgmesImport(platformConfig).importData(catalogModified.miniNodeBreakerInvalidT2w().dataSource(),
-                NetworkFactory.findDefault(), null);
-        TwoWindingsTransformer invalid = invalidNetwork.getTwoWindingsTransformer("_ceb5d06a-a7ff-4102-a620-7f3ea5fb4a51");
-        assertNull(invalid);
+        Load load = network.getLoad("SvInjection");
+        assertNotNull(load);
+        assertEquals(-0.2, load.getP0(), 0.0);
+        assertEquals(-13.8, load.getQ0(), 0.0);
     }
 
     private static CgmesConformity1Catalog catalog;
     private static CgmesConformity1ModifiedCatalog catalogModified;
 
     private FileSystem fileSystem;
-    private InMemoryPlatformConfig platformConfig;
+    private PlatformConfig platformConfig;
 }
