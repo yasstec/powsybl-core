@@ -20,6 +20,8 @@ public class RegulatingControlMapping {
     private static final String TAP_CHANGER_CONTROL = "TapChangerControl";
     private static final String TERMINAL = "Terminal";
     private static final String MISSING_IIDM_TERMINAL = "IIDM terminal for this CGMES topological node: %s";
+    private static final String TAP_CHANGER_CONTROL_ENABLED = "tapChangerControlEnabled";
+    private static final String PHASE_TAP_CHANGER = "PhaseTapChanger";
 
     private final Context context;
 
@@ -119,7 +121,7 @@ public class RegulatingControlMapping {
             adder.setRegulating(false)
                     .setTargetV(Double.NaN);
         } else {
-            adder.setRegulating(control.enabled || p.asBoolean("tapChangerControlEnabled", false))
+            adder.setRegulating(control.enabled || p.asBoolean(TAP_CHANGER_CONTROL_ENABLED, false))
                     .setTargetDeadband(control.targetDeadband)
                     .setTargetV(control.targetValue);
         }
@@ -142,7 +144,7 @@ public class RegulatingControlMapping {
         if (p.containsKey(TAP_CHANGER_CONTROL)) {
             RegulatingControl control = cachedRegulatingControls.get(p.getId(TAP_CHANGER_CONTROL));
             if (control != null) {
-                int side = context.tapChangerTransformers().whichSide(p.getId("PhaseTapChanger"));
+                int side = context.tapChangerTransformers().whichSide(p.getId(PHASE_TAP_CHANGER));
                 if (control.mode.endsWith("currentflow")) {
                     addCurrentFlowRegControl(p, control, defaultTerminal, adder, side, t2w);
                 } else if (control.mode.endsWith("activepower")) {
@@ -160,14 +162,14 @@ public class RegulatingControlMapping {
         adder.setRegulationMode(PhaseTapChanger.RegulationMode.CURRENT_LIMITER)
                 .setRegulationValue(getTargetValue(control.targetValue, control.cgmesTerminal, side, t2w))
                 .setTargetDeadband(control.targetDeadband)
-                .setRegulating(control.enabled);
+                .setRegulating(control.enabled || p.asBoolean(TAP_CHANGER_CONTROL_ENABLED, false));
         setRegulatingTerminal(p, control, defaultTerminal, adder);
     }
 
     private void addActivePowerRegControl(PropertyBag p, RegulatingControl control, Terminal defaultTerminal, PhaseTapChangerAdder adder, int side, TwoWindingsTransformer t2w) {
         adder.setRegulationMode(PhaseTapChanger.RegulationMode.ACTIVE_POWER_CONTROL)
                 .setTargetDeadband(control.targetDeadband)
-                .setRegulating(control.enabled)
+                .setRegulating(control.enabled || p.asBoolean(TAP_CHANGER_CONTROL_ENABLED, false))
                 .setRegulationValue(getTargetValue(-control.targetValue, control.cgmesTerminal, side, t2w));
         setRegulatingTerminal(p, control, defaultTerminal, adder);
     }
@@ -183,11 +185,11 @@ public class RegulatingControlMapping {
     private void setRegulatingTerminal(PropertyBag p, RegulatingControl control, Terminal defaultTerminal, PhaseTapChangerAdder adder) {
         if (context.terminalMapping().find(control.cgmesTerminal) != null) {
             adder.setRegulationTerminal(context.terminalMapping().find(control.cgmesTerminal));
-            control.idsEq.put(p.getId("PhaseTapChanger"), true);
+            control.idsEq.put(p.getId(PHASE_TAP_CHANGER), true);
         } else {
             adder.setRegulationTerminal(defaultTerminal);
             if (!context.terminalMapping().areAssociated(p.getId(TERMINAL), control.topologicalNode)) {
-                control.idsEq.put(p.getId("PhaseTapChanger"), false);
+                control.idsEq.put(p.getId(PHASE_TAP_CHANGER), false);
             }
         }
     }
