@@ -225,12 +225,24 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
 
     PowerFlow powerFlow() {
         // Could come either from terminal data or from property bag
-        return terminalPowerFlow().defined() ? terminalPowerFlow() : equipmentPowerFlow();
+        if (equipmentPowerFlow().defined()) {
+            return equipmentPowerFlow();
+        }
+        if (terminalPowerFlow().defined()) {
+            return terminalPowerFlow();
+        }
+        return PowerFlow.UNDEFINED;
     }
 
     PowerFlow powerFlow(int n) {
         // Could come either from terminal data or from property bag
-        return terminalPowerFlow(n).defined() ? terminalPowerFlow(n) : equipmentPowerFlow();
+        if (equipmentPowerFlow().defined()) {
+            return equipmentPowerFlow();
+        }
+        if (terminalPowerFlow(n).defined()) {
+            return terminalPowerFlow(n);
+        }
+        return PowerFlow.UNDEFINED;
     }
 
     // Terminals
