@@ -139,6 +139,7 @@ public class CgmesConformity1ConversionTest {
         tester.testConversion(expecteds.microBaseCaseBE(), actuals.microGridBaseCaseBE());
     }
 
+    //@Ignore("Test cgmes extended conversion ")
     @Test
     public void microGridType4BE() throws IOException {
         tester.testConversion(expecteds.microType4BE(), actuals.microGridType4BE());
@@ -169,7 +170,11 @@ public class CgmesConformity1ConversionTest {
         // This test will check that IIDM buses,
         // that will be computed by IIDM from CGMES node-breaker ConnectivityNodes,
         // have proper balances
+        Properties importParams = new Properties();
+        importParams.put(CgmesImport.CONVERSION_ALTERNATIVE_XFMR2_STRUCTURAL_RATIO, "x");
+
         ConversionTester t = new ConversionTester(
+            importParams,
             TripleStoreFactory.onlyDefaultImplementation(),
             new ComparisonConfig());
         t.setValidateBusBalances(true);

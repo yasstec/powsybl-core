@@ -45,8 +45,10 @@ public class Context {
         currentLimitsMapping = new CurrentLimitsMapping(this);
         regulatingControlMapping = new RegulatingControlMapping(this);
         nodeMapping = new NodeMapping();
+        transformerRegulatingControlMapping = new TransformerRegulatingControlMapping();
 
         ratioTapChangerTables = new HashMap<>();
+        phaseTapChangerTables = new HashMap<>();
         reactiveCapabilityCurveData = new HashMap<>();
     }
 
@@ -76,6 +78,10 @@ public class Context {
 
     public NodeMapping nodeMapping() {
         return nodeMapping;
+    }
+
+    public TransformerRegulatingControlMapping transformerRegulatingControlMapping() {
+        return transformerRegulatingControlMapping;
     }
 
     public TapChangerTransformers tapChangerTransformers() {
@@ -138,8 +144,23 @@ public class Context {
         });
     }
 
+    public void loadPhaseTapChangerTables() {
+        PropertyBags ptcpoints = cgmes.phaseTapChangerTablesPoints();
+        if (ptcpoints == null) {
+            return;
+        }
+        ptcpoints.forEach(p -> {
+            String tableId = p.getId("PhaseTapChangerTable");
+            phaseTapChangerTables.computeIfAbsent(tableId, tid -> new PropertyBags()).add(p);
+        });
+    }
+
     public PropertyBags ratioTapChangerTable(String tableId) {
         return ratioTapChangerTables.get(tableId);
+    }
+
+    public PropertyBags phaseTapChangerTable(String tableId) {
+        return phaseTapChangerTables.get(tableId);
     }
 
     public void startLinesConversion() {
@@ -204,8 +225,10 @@ public class Context {
     private final DcMapping dcMapping;
     private final CurrentLimitsMapping currentLimitsMapping;
     private final RegulatingControlMapping regulatingControlMapping;
+    private final TransformerRegulatingControlMapping transformerRegulatingControlMapping;
 
     private final Map<String, PropertyBags> ratioTapChangerTables;
+    private final Map<String, PropertyBags> phaseTapChangerTables;
     private final Map<String, PropertyBags> reactiveCapabilityCurveData;
 
     private int countLines;
