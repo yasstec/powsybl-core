@@ -124,6 +124,8 @@ public interface CgmesModel {
 
     PropertyBags dcTerminalsTP();
 
+    PropertyBags modelProfiles();
+
     void clear(CgmesSubset subset);
 
     void add(CgmesSubset subset, String type, PropertyBags objects);
