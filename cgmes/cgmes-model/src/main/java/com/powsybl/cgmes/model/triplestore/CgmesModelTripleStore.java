@@ -70,7 +70,7 @@ public class CgmesModelTripleStore extends AbstractCgmesModel {
     }
 
     // Queries
-
+    @Override
     public PropertyBags modelProfiles() {
         return namedQuery(MODEL_PROFILES);
     }

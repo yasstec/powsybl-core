@@ -57,6 +57,7 @@ public final class FakeCgmesModel implements CgmesModel {
     private PropertyBags dcLineSegments;
     private PropertyBags dcTerminals;
     private PropertyBags numObjectsByType;
+    private PropertyBags modelProfiles;
 
     public FakeCgmesModel() {
         properties = new Properties();
@@ -94,6 +95,7 @@ public final class FakeCgmesModel implements CgmesModel {
         dcLineSegments = new PropertyBags();
         dcTerminals = new PropertyBags();
         numObjectsByType = new PropertyBags();
+        modelProfiles = new PropertyBags();
     }
 
     @Override
@@ -469,6 +471,11 @@ public final class FakeCgmesModel implements CgmesModel {
     @Override
     public PropertyBags dcTerminalsTP() {
         return dcTerminals;
+    }
+
+    @Override
+    public PropertyBags modelProfiles() {
+        return modelProfiles;
     }
 
     @Override

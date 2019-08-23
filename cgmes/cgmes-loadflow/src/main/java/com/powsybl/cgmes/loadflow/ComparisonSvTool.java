@@ -128,11 +128,11 @@ public class ComparisonSvTool implements Tool {
         double angle3 = Double.NaN;
     }
 
-    double[] diffAngle = new double[1];
+    private double[] diffAngle = new double[1];
 
     private static void addFile(Path folder, String file, Map<String, Triplet> results, BiConsumer<Triplet, PropertyBag> consumer) {
         ReadOnlyDataSource ds = new FileDataSource(folder, file);
-        CgmesModelTripleStore cgmes = CgmesModelFactory.create(ds, "rdf4j");
+        CgmesModelTripleStore cgmes = (CgmesModelTripleStore) CgmesModelFactory.create(ds, "rdf4j");
         PropertyBags bags = cgmes.namedQuery("voltages");
         for (PropertyBag p : bags) {
             consumer.accept(results.computeIfAbsent(p.getId(TOPOLOGICAL_NODE), s -> new Triplet()), p);
