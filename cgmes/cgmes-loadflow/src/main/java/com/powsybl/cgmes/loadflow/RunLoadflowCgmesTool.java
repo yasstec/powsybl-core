@@ -19,7 +19,6 @@ import com.powsybl.iidm.network.*;
 import com.powsybl.iidm.network.util.Networks;
 import com.powsybl.iidm.tools.ConversionToolUtils;
 import com.powsybl.loadflow.LoadFlow;
-import com.powsybl.loadflow.LoadFlowFactory;
 import com.powsybl.loadflow.LoadFlowParameters;
 import com.powsybl.loadflow.LoadFlowResult;
 import com.powsybl.loadflow.json.JsonLoadFlowParameters;
@@ -198,15 +197,13 @@ public class RunLoadflowCgmesTool implements Tool {
             }
         }
 
-        LoadFlow loadFlow = defaultConfig.newFactoryImpl(LoadFlowFactory.class).create(network, context.getShortTimeExecutionComputationManager(), 0);
-
         LoadFlowParameters params = LoadFlowParameters.load();
         if (line.hasOption(PARAMETERS_FILE)) {
             Path parametersFile = context.getFileSystem().getPath(line.getOptionValue(PARAMETERS_FILE));
             JsonLoadFlowParameters.update(params, parametersFile);
         }
 
-        LoadFlowResult result = loadFlow.run(network.getVariantManager().getWorkingVariantId(), params).join();
+        LoadFlowResult result = LoadFlow.run(network, params);
 
         if (outputFile != null) {
             exportResult(result, context, outputFile, format);
