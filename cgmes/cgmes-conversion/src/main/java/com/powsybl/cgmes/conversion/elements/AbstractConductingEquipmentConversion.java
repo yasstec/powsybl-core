@@ -39,7 +39,7 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
         numTerminals = 1;
         terminals = new TerminalData[] {null, null, null};
         terminals[0] = new TerminalData(CgmesNames.TERMINAL, p, context);
-        equipmentPowerFlow = new PowerFlow(p, "p", "q");
+        steadyStatePowerFlow = new PowerFlow(p, "p", "q");
     }
 
     public AbstractConductingEquipmentConversion(
@@ -58,7 +58,7 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
             int k0 = k - 1;
             terminals[k0] = new TerminalData(CgmesNames.TERMINAL + k, p, context);
         }
-        equipmentPowerFlow = PowerFlow.UNDEFINED;
+        steadyStatePowerFlow = PowerFlow.UNDEFINED;
     }
 
     public AbstractConductingEquipmentConversion(
@@ -75,7 +75,7 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
             int k0 = k - 1;
             terminals[k0] = new TerminalData(CgmesNames.TERMINAL, ps.get(k0), context);
         }
-        equipmentPowerFlow = PowerFlow.UNDEFINED;
+        steadyStatePowerFlow = PowerFlow.UNDEFINED;
     }
 
     @Override
@@ -219,18 +219,32 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
         return terminals[n - 1].t.flow();
     }
 
-    PowerFlow equipmentPowerFlow() {
-        return equipmentPowerFlow;
+    PowerFlow steadyStatePowerFlow() {
+        return steadyStatePowerFlow;
     }
 
     PowerFlow powerFlow() {
-        // Could come either from terminal data or from property bag
-        return terminalPowerFlow().defined() ? terminalPowerFlow() : equipmentPowerFlow();
+        // used for state attributes (targetQ, targetP, p0, etc.) outside boundaries
+        // SSH files are priority
+        if (steadyStatePowerFlow().defined()) {
+            return steadyStatePowerFlow();
+        }
+        if (terminalPowerFlow().defined()) {
+            return terminalPowerFlow();
+        }
+        return PowerFlow.UNDEFINED;
     }
 
     PowerFlow powerFlow(int n) {
-        // Could come either from terminal data or from property bag
-        return terminalPowerFlow(n).defined() ? terminalPowerFlow(n) : equipmentPowerFlow();
+        // used for state attributes (targetQ, targetP, p0, etc.) outside boundaries
+        // SSH files are priority
+        if (steadyStatePowerFlow().defined()) {
+            return steadyStatePowerFlow();
+        }
+        if (terminalPowerFlow(n).defined()) {
+            return terminalPowerFlow(n);
+        }
+        return PowerFlow.UNDEFINED;
     }
 
     // Terminals
@@ -396,5 +410,5 @@ public abstract class AbstractConductingEquipmentConversion extends AbstractIden
     }
 
     private final TerminalData[] terminals;
-    private final PowerFlow equipmentPowerFlow;
+    private final PowerFlow steadyStatePowerFlow;
 }
