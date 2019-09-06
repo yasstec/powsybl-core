@@ -48,49 +48,6 @@ public class CgmesConformity1ModifiedConversionTest {
     }
 
     @Test
-    public void microBERatioPhaseTabularTest() {
-        Network network = new CgmesImport(platformConfig)
-                .importData(catalogModified.microGridBaseCaseBERatioPhaseTapChangerTabular().dataSource(), null);
-        RatioTapChanger rtc = network.getTwoWindingsTransformer("_b94318f6-6d24-4f56-96b9-df2531ad6543")
-                .getRatioTapChanger();
-        assertEquals(6, rtc.getStepCount());
-        // ratio is missing for step 3
-        // ratio is defined explicitly as 1.0 for step 4
-        // r not defined in step 5
-        // x not defined in step 6
-        assertEquals(1.0, rtc.getStep(3).getRho(), 0);
-        assertEquals(1.0, rtc.getStep(4).getRho(), 0);
-        assertEquals(0.0, rtc.getStep(5).getR(), 0);
-        assertEquals(0.0, rtc.getStep(6).getX(), 0);
-
-        PhaseTapChanger ptc = network.getTwoWindingsTransformer("_a708c3bc-465d-4fe7-b6ef-6fa6408a62b0")
-                .getPhaseTapChanger();
-        // r,x not defined for step 1
-        // ratio not defined for any step
-        assertEquals(4, ptc.getStepCount());
-        assertEquals(0.0, ptc.getStep(1).getR(), 0);
-        assertEquals(0.0, ptc.getStep(1).getX(), 0);
-        for (int k = 1; k <= 4; k++) {
-            assertEquals(1.0, ptc.getStep(k).getRho(), 0);
-        }
-    }
-
-    @Test
-    public void microBEUsingSshForRtcPtcEnabled() {
-        Network network = new CgmesImport(platformConfig)
-                .importData(catalogModified.microGridBaseCaseBERtcPtcEnabledBySsh().dataSource(), null);
-
-        RatioTapChanger rtc = network.getTwoWindingsTransformer("_e482b89a-fa84-4ea9-8e70-a83d44790957").getRatioTapChanger();
-        assertNotNull(rtc);
-        assertTrue(rtc.isRegulating());
-
-        PhaseTapChanger ptc = network.getTwoWindingsTransformer("_a708c3bc-465d-4fe7-b6ef-6fa6408a62b0")
-                .getPhaseTapChanger();
-        assertNotNull(ptc);
-        assertTrue(ptc.isRegulating());
-    }
-
-    @Test
     public void microBEPtcSide2() {
         Network network = new CgmesImport(platformConfig)
                 .importData(catalogModified.microGridBaseCaseBEPtcSide2().dataSource(), null);
