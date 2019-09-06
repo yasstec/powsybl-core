@@ -15,6 +15,7 @@ import com.powsybl.iidm.network.test.SvcTestCaseFactory;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class ContingencyTest {
         Contingency shuntCompensatorContingency = new Contingency("Shunt contingency", new ShuntCompensatorContingency("C1_Filter1"));
         Contingency shuntCompensatorInvalidContingency = new Contingency("Shunt invalid contingency", new ShuntCompensatorContingency("C_Filter"));
         List<Contingency> validContingencies = Contingency.checkValidity(Arrays.asList(shuntCompensatorContingency, shuntCompensatorInvalidContingency), network);
-        assertEquals(Arrays.asList("Shunt contingency"),
+        assertEquals(Collections.singletonList("Shunt contingency"),
                 validContingencies.stream().map(Contingency::getId).collect(Collectors.toList()));
     }
 
@@ -73,7 +74,48 @@ public class ContingencyTest {
         Contingency staticVarCompensatorContingency = new Contingency("SVC contingency", new StaticVarCompensatorContingency("SVC2"));
         Contingency staticVarCompensatorInvalidContingency = new Contingency("SVC invalid contingency", new StaticVarCompensatorContingency("SVC"));
         List<Contingency> validContingencies = Contingency.checkValidity(Arrays.asList(staticVarCompensatorContingency, staticVarCompensatorInvalidContingency), network);
-        assertEquals(Arrays.asList("SVC contingency"),
+        assertEquals(Collections.singletonList("SVC contingency"),
                 validContingencies.stream().map(Contingency::getId).collect(Collectors.toList()));
     }
+
+    @Test
+    public void testHelpers() {
+        testHelpers(Contingency.busbarSection("BBS"), "BBS", BusbarSectionContingency.class);
+        testHelpers(Contingency.generator("GEN"), "GEN", GeneratorContingency.class);
+        testHelpers(Contingency.hvdcLine("HVDC"), "HVDC", HvdcLineContingency.class);
+        testHelpers(Contingency.line("LINE"), "LINE", BranchContingency.class);
+        testHelpers(Contingency.shuntCompensator("SHUNT"), "SHUNT", ShuntCompensatorContingency.class);
+        testHelpers(Contingency.staticVarCompensator("SVC"), "SVC", StaticVarCompensatorContingency.class);
+        testHelpers(Contingency.twoWindingsTransformer("TWT"), "TWT", BranchContingency.class);
+    }
+
+    private static void testHelpers(Contingency contingency, String id, Class<?> clazz) {
+        assertEquals(id, contingency.getId());
+        assertEquals(1, contingency.getElements().size());
+        ContingencyElement element = contingency.getElements().iterator().next();
+        assertTrue(clazz.isInstance(element));
+        assertEquals(id, element.getId());
+    }
 }
+
+/*
+    public static Contingency hvdcLine(String hvdcLineId) {
+        return new Contingency(hvdcLineId, new HvdcLineContingency(hvdcLineId));
+    }
+
+    public static Contingency line(String lineId) {
+        return new Contingency(lineId, new BranchContingency(lineId));
+    }
+
+    public static Contingency shuntCompensator(String shuntCompensatorId) {
+        return new Contingency(shuntCompensatorId, new ShuntCompensatorContingency(shuntCompensatorId));
+    }
+
+    public static Contingency staticVarCompensator(String svcId) {
+        return new Contingency(svcId, new StaticVarCompensatorContingency(svcId));
+    }
+
+    public static Contingency twoWindingsTransformer(String twtId) {
+        return new Contingency(twtId, new BranchContingency(twtId));
+    }
+ */

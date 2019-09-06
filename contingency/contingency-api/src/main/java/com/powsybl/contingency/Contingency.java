@@ -10,6 +10,7 @@ import com.powsybl.commons.extensions.AbstractExtendable;
 import com.powsybl.contingency.tasks.CompoundModificationTask;
 import com.powsybl.contingency.tasks.ModificationTask;
 import com.powsybl.iidm.network.Branch;
+import com.powsybl.iidm.network.HvdcLine;
 import com.powsybl.iidm.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,38 @@ public class Contingency extends AbstractExtendable<Contingency> {
     private String id;
 
     private final List<ContingencyElement> elements;
+
+    public static ContingencyBuilder builder(String id) {
+        return new ContingencyBuilder(id);
+    }
+
+    public static Contingency busbarSection(String busbarSectionId) {
+        return builder(busbarSectionId).busbarSection(busbarSectionId).build();
+    }
+
+    public static Contingency generator(String generatorId) {
+        return builder(generatorId).generator(generatorId).build();
+    }
+
+    public static Contingency hvdcLine(String hvdcLineId) {
+        return builder(hvdcLineId).hvdcLine(hvdcLineId).build();
+    }
+
+    public static Contingency line(String lineId) {
+        return builder(lineId).line(lineId).build();
+    }
+
+    public static Contingency shuntCompensator(String shuntCompensatorId) {
+        return builder(shuntCompensatorId).shuntCompensator(shuntCompensatorId).build();
+    }
+
+    public static Contingency staticVarCompensator(String svcId) {
+        return builder(svcId).staticVarCompensator(svcId).build();
+    }
+
+    public static Contingency twoWindingsTransformer(String twtId) {
+        return builder(twtId).twoWindingsTransformer(twtId).build();
+    }
 
     public Contingency(String id, ContingencyElement... elements) {
         this(id, Arrays.asList(elements));
@@ -63,13 +96,26 @@ public class Contingency extends AbstractExtendable<Contingency> {
     }
 
     private static boolean checkSidedContingency(Contingency contingency, AbstractSidedContingency element, Network network) {
-        Branch branch = network.getBranch(element.getId());
-        if (branch == null || (element.getVoltageLevelId() != null &&
-                !(element.getVoltageLevelId().equals(branch.getTerminal1().getVoltageLevel().getId()) ||
-                        element.getVoltageLevelId().equals(branch.getTerminal2().getVoltageLevel().getId())))) {
-            LOGGER.warn("Branch or HVDC line '{}' of contingency '{}' not found", element.getId(), contingency.getId());
-            return false;
+        if (element instanceof BranchContingency) {
+            Branch branch = network.getBranch(element.getId());
+            if (branch == null || (element.getVoltageLevelId() != null &&
+                    !(element.getVoltageLevelId().equals(branch.getTerminal1().getVoltageLevel().getId()) ||
+                            element.getVoltageLevelId().equals(branch.getTerminal2().getVoltageLevel().getId())))) {
+                LOGGER.warn("Branch '{}' of contingency '{}' not found", element.getId(), contingency.getId());
+                return false;
+            }
+        } else if (element instanceof HvdcLineContingency) {
+            HvdcLine hvdcLine = network.getHvdcLine(element.getId());
+            if (hvdcLine == null || (element.getVoltageLevelId() != null &&
+                    !(element.getVoltageLevelId().equals(hvdcLine.getConverterStation1().getTerminal().getVoltageLevel().getId()) ||
+                            element.getVoltageLevelId().equals(hvdcLine.getConverterStation2().getTerminal().getVoltageLevel().getId())))) {
+                LOGGER.warn("HVDC line '{}' of contingency '{}' not found", element.getId(), contingency.getId());
+                return false;
+            }
+        } else {
+            throw new AssertionError("Unsupported ContingencyElementType: " + element.getType());
         }
+
         return true;
     }
 
