@@ -205,7 +205,9 @@ class ThreeWindingsTransformerImpl extends AbstractConnectable<ThreeWindingsTran
 
         @Override
         public void setPhaseTapChanger(PhaseTapChangerImpl phaseTapChanger) {
+            PhaseTapChangerImpl oldValue = this.phaseTapChanger;
             this.phaseTapChanger = phaseTapChanger;
+            transformer.notifyUpdate(() -> getLegAttribute() + "." + getTapChangerAttribute(), oldValue, phaseTapChanger);
         }
 
         @Override
