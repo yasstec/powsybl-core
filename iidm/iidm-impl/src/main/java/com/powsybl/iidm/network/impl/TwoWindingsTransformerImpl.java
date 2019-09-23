@@ -261,7 +261,7 @@ class TwoWindingsTransformerImpl extends AbstractBranch<TwoWindingsTransformer>
 
     @Override
     public String getTapChangerAttribute() {
-        return "ratioTapChanger";
+        return "TapChanger";
     }
 
     @Override
