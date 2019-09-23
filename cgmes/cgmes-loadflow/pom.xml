@@ -19,6 +19,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>powsybl-config-classic</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>powsybl-iidm-converter-api</artifactId>
             <version>${project.version}</version>
         </dependency>
