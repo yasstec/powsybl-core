@@ -89,6 +89,20 @@ public class ContingencyTest {
         testHelpers(Contingency.twoWindingsTransformer("TWT"), "TWT", BranchContingency.class);
     }
 
+    @Test
+    public void testHelpersMultipleElement() {
+        String contingencyId = "C";
+        String[] ids = new String[]{"ID1", "ID2"};
+
+        testHelpers(Contingency.builder(contingencyId).busbarSections(ids).build(), contingencyId, ids, BusbarSectionContingency.class);
+        testHelpers(Contingency.builder(contingencyId).generators(ids).build(), contingencyId, ids, GeneratorContingency.class);
+        testHelpers(Contingency.builder(contingencyId).hvdcLines(ids).build(), contingencyId, ids, HvdcLineContingency.class);
+        testHelpers(Contingency.builder(contingencyId).lines(ids).build(), contingencyId, ids, BranchContingency.class);
+        testHelpers(Contingency.builder(contingencyId).shuntCompensators(ids).build(), contingencyId, ids, ShuntCompensatorContingency.class);
+        testHelpers(Contingency.builder(contingencyId).staticVarCompensators(ids).build(), contingencyId, ids, StaticVarCompensatorContingency.class);
+        testHelpers(Contingency.builder(contingencyId).twoWindingsTransformers(ids).build(), contingencyId, ids, BranchContingency.class);
+    }
+
     private static void testHelpers(Contingency contingency, String id, Class<?> clazz) {
         assertEquals(id, contingency.getId());
         assertEquals(1, contingency.getElements().size());
@@ -96,26 +110,16 @@ public class ContingencyTest {
         assertTrue(clazz.isInstance(element));
         assertEquals(id, element.getId());
     }
+
+    private static void testHelpers(Contingency contingency, String id, String[] ids, Class<?> clazz) {
+        assertEquals(id, contingency.getId());
+        assertEquals(ids.length, contingency.getElements().size());
+
+        int i = 0;
+        for (ContingencyElement element : contingency.getElements()) {
+            assertTrue(clazz.isInstance(element));
+            assertEquals(ids[i], element.getId());
+            i++;
+        }
+    }
 }
-
-/*
-    public static Contingency hvdcLine(String hvdcLineId) {
-        return new Contingency(hvdcLineId, new HvdcLineContingency(hvdcLineId));
-    }
-
-    public static Contingency line(String lineId) {
-        return new Contingency(lineId, new BranchContingency(lineId));
-    }
-
-    public static Contingency shuntCompensator(String shuntCompensatorId) {
-        return new Contingency(shuntCompensatorId, new ShuntCompensatorContingency(shuntCompensatorId));
-    }
-
-    public static Contingency staticVarCompensator(String svcId) {
-        return new Contingency(svcId, new StaticVarCompensatorContingency(svcId));
-    }
-
-    public static Contingency twoWindingsTransformer(String twtId) {
-        return new Contingency(twtId, new BranchContingency(twtId));
-    }
- */

@@ -13,8 +13,8 @@ import com.powsybl.commons.config.MapModuleConfig;
 import com.powsybl.computation.CommandExecution;
 import com.powsybl.computation.ComputationManager;
 import com.powsybl.computation.ExecutionHandler;
-import com.powsybl.contingency.ContingenciesProvider;
 import com.powsybl.contingency.Contingency;
+import com.powsybl.contingency.ContingencyList;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.network.VariantManagerConstants;
 import com.powsybl.iidm.network.test.EurostagTutorialExample1Factory;
@@ -47,7 +47,7 @@ public class DistributedSecurityAnalysisTest {
     private Path workingDir;
     private ComputationManager cm = mock(ComputationManager.class);
     private Network network = EurostagTutorialExample1Factory.create();
-    private ContingenciesProvider contingencies = newContingenciesProvider();
+    private ContingencyList contingencies = newContingenciesList();
 
     @Before
     public void setUp() throws IOException {
@@ -61,8 +61,8 @@ public class DistributedSecurityAnalysisTest {
         fileSystem.close();
     }
 
-    private static ContingenciesProvider newContingenciesProvider() {
-        return new ContingenciesProvider() {
+    private static ContingencyList newContingenciesList() {
+        return new ContingencyList() {
             @Override
             public List<Contingency> getContingencies(Network network) {
                 return IntStream.range(1, 6)

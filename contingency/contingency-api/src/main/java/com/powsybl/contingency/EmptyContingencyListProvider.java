@@ -12,8 +12,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * @deprecated Use {@link ContingencyList#empty()} instead
+ *
  * @author Mathieu Bague <mathieu.bague at rte-france.com>
  */
+@Deprecated
 public class EmptyContingencyListProvider implements ContingenciesProvider {
 
     @Override

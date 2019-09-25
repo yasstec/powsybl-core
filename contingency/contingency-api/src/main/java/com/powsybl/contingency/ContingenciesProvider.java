@@ -11,8 +11,11 @@ import com.powsybl.iidm.network.Network;
 import java.util.List;
 
 /**
+ * @deprecated Use ContingencyList instead.
+ *
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
+@Deprecated
 public interface ContingenciesProvider {
 
     List<Contingency> getContingencies(Network network);

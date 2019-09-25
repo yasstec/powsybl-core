@@ -6,7 +6,7 @@
  */
 package com.powsybl.contingency.dsl;
 
-import com.powsybl.contingency.ContingenciesProvider;
+import com.powsybl.contingency.ContingencyList;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyShell;
 
@@ -19,7 +19,7 @@ import java.util.Objects;
 /**
  * @author Mathieu Bague <mathieu.bague at rte-france.com>
  */
-public abstract class AbstractDslContingenciesProvider implements ContingenciesProvider {
+public abstract class AbstractDslContingenciesProvider implements ContingencyList {
 
     protected final GroovyCodeSource script;
 

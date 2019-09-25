@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 /**
  * @author Mathieu Bague <mathieu.bague@rte-france.com>
  */
-public interface ContingencyList {
+public interface ContingencyList extends ContingenciesProvider {
 
     /**
      * Create a contingency list from an array of contingencies

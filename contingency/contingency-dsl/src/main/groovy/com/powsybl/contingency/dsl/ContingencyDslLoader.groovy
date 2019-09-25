@@ -57,25 +57,27 @@ class ContingencyDslLoader extends DslLoader {
             if (contingencySpec.equipments.length == 0) {
                 throw new DslException("'equipments' field is empty")
             }
-            def elements = []
+            ContingencyBuilder builder = Contingency.builder(id)
             def valid = true
             for (String equipment : contingencySpec.equipments) {
                 Identifiable identifiable = network.getIdentifiable(equipment)
                 if (identifiable == null) {
                     LOGGER.warn("Equipment '{}' of contingency '{}' not found", equipment, id)
                     valid = false
-                } else if (identifiable instanceof Line || identifiable instanceof TwoWindingsTransformer) {
-                    elements.add(new BranchContingency(equipment))
+                } else if (identifiable instanceof Line) {
+                    builder.line(equipment)
+                } else if (identifiable instanceof TwoWindingsTransformer) {
+                    builder.twoWindingsTransformer(equipment)
                 } else if (identifiable instanceof HvdcLine) {
-                    elements.add(new HvdcLineContingency(equipment))
+                    builder.hvdcLine(equipment)
                 } else if (identifiable instanceof Generator) {
-                    elements.add(new GeneratorContingency(equipment))
+                    builder.generator(equipment)
                 } else if (identifiable instanceof BusbarSection) {
-                    elements.add(new BusbarSectionContingency(equipment))
+                    builder.busbarSection(equipment)
                 } else if (identifiable instanceof ShuntCompensator) {
-                    elements.add(new ShuntCompensatorContingency(equipment))
+                    builder.shuntCompensator(equipment)
                 } else if (identifiable instanceof StaticVarCompensator) {
-                    elements.add(new StaticVarCompensatorContingency(equipment))
+                    builder.staticVarCompensator(equipment)
                 } else {
                     LOGGER.warn("Equipment type {} not supported in contingencies", identifiable.getClass().name)
                     valid = false
@@ -84,8 +86,7 @@ class ContingencyDslLoader extends DslLoader {
             if (valid) {
                 LOGGER.debug("Found contingency '{}'", id)
                 observer?.contingencyFound(id)
-                Contingency contingency = new Contingency(id, elements)
-                consumer.accept(contingency)
+                consumer.accept(builder.build())
             } else {
                 LOGGER.warn("Contingency '{}' is invalid", id)
             }

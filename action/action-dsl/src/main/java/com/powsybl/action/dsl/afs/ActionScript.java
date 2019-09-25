@@ -11,8 +11,8 @@ import com.powsybl.action.dsl.ActionDslLoader;
 import com.powsybl.afs.ProjectFileCreationContext;
 import com.powsybl.afs.ext.base.AbstractModificationScript;
 import com.powsybl.afs.ext.base.ScriptType;
-import com.powsybl.contingency.ContingenciesProvider;
 import com.powsybl.contingency.Contingency;
+import com.powsybl.contingency.ContingencyList;
 import com.powsybl.iidm.network.Network;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
 /**
  * @author Geoffroy Jamgotchian <geoffroy.jamgotchian at rte-france.com>
  */
-public class ActionScript extends AbstractModificationScript implements ContingenciesProvider {
+public class ActionScript extends AbstractModificationScript implements ContingencyList {
 
     public static final String PSEUDO_CLASS = "actionScript";
     public static final int VERSION = 0;

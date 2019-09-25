@@ -17,7 +17,7 @@ import java.util.Objects;
  * A contingencies provider which provides a subset of another provider,
  * defined by a {@link Partition}.
  *
- * For exemple, if the other provider defines 10 contingencies,
+ * For example, if the other provider defines 10 contingencies,
  * an instance of this provider will return the 5 first contingencies for the partition 1/2,
  * or the 5 next for the partition 2/2.
  *
