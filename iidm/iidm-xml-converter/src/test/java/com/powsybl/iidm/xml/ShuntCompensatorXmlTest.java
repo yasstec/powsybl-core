@@ -7,6 +7,8 @@
 package com.powsybl.iidm.xml;
 
 import com.powsybl.commons.AbstractConverterTest;
+import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.ShuntCompensator;
 import com.powsybl.iidm.network.test.ShuntTestCaseFactory;
 import org.junit.Test;
 
@@ -19,6 +21,9 @@ public class ShuntCompensatorXmlTest extends AbstractConverterTest {
 
     @Test
     public void test() throws IOException {
-        roundTripXmlTest(ShuntTestCaseFactory.create(), NetworkXml::writeAndValidate, NetworkXml::read, "/shuntRoundTripRef.xml");
+        Network network = ShuntTestCaseFactory.create();
+        ShuntCompensator sc = network.getShuntCompensator("SHUNT");
+        sc.setProperty("test", "test");
+        roundTripXmlTest(network, NetworkXml::writeAndValidate, NetworkXml::read, "/shuntRoundTripRef.xml");
     }
 }
