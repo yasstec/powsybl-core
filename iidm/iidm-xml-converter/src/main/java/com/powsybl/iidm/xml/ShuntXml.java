@@ -30,7 +30,7 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
 
     @Override
     protected boolean hasSubElements(ShuntCompensator sc) {
-        return false;
+        return true;
     }
 
     @Override
@@ -38,8 +38,18 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
         XmlUtil.writeDouble("bPerSection", sc.getbPerSection(), context.getWriter());
         context.getWriter().writeAttribute("maximumSectionCount", Integer.toString(sc.getMaximumSectionCount()));
         context.getWriter().writeAttribute("currentSectionCount", Integer.toString(sc.getCurrentSectionCount()));
+        XmlUtil.writeOptionalBoolean("regulating", sc.isRegulating(), false, context.getWriter());
+        XmlUtil.writeDouble("targetV", sc.getTargetV(), context.getWriter());
+        XmlUtil.writeOptionalDouble("targetDeadband", sc.getTargetDeadband(), 0, context.getWriter());
         writeNodeOrBus(null, sc.getTerminal(), context);
         writePQ(null, sc.getTerminal(), context.getWriter());
+    }
+
+    @Override
+    protected void writeSubElements(ShuntCompensator sc, VoltageLevel vl, NetworkXmlWriterContext context) throws XMLStreamException {
+        if (sc.getRegulatingTerminal().getConnectable() != sc) {
+            TerminalRefXml.writeTerminalRef(sc.getRegulatingTerminal(), context, "regulatingTerminal");
+        }
     }
 
     @Override
@@ -52,9 +62,15 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
         double bPerSection = XmlUtil.readDoubleAttribute(context.getReader(), "bPerSection");
         int maximumSectionCount = XmlUtil.readIntAttribute(context.getReader(), "maximumSectionCount");
         int currentSectionCount = XmlUtil.readIntAttribute(context.getReader(), "currentSectionCount");
+        boolean regulating = XmlUtil.readOptionalBoolAttribute(context.getReader(), "regulating", false);
+        double targetV = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetV");
+        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetDeadband");
         adder.setbPerSection(bPerSection)
                 .setMaximumSectionCount(maximumSectionCount)
-                .setCurrentSectionCount(currentSectionCount);
+                .setCurrentSectionCount(currentSectionCount)
+                .setRegulating(regulating)
+                .setTargetV(targetV)
+                .setTargetDeadband(targetDeadband);
         readNodeOrBus(adder, context);
         ShuntCompensator sc = adder.add();
         readPQ(null, sc.getTerminal(), context.getReader());
@@ -63,6 +79,14 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
 
     @Override
     protected void readSubElements(ShuntCompensator sc, NetworkXmlReaderContext context) throws XMLStreamException {
-        readUntilEndRootElement(context.getReader(), () -> ShuntXml.super.readSubElements(sc, context));
+        readUntilEndRootElement(context.getReader(), () -> {
+            if (context.getReader().getLocalName().equals("regulatingTerminal")) {
+                String id = context.getAnonymizer().deanonymizeString(context.getReader().getAttributeValue(null, "id"));
+                String side = context.getReader().getAttributeValue(null, "side");
+                context.getEndTasks().add(() -> sc.setRegulatingTerminal(TerminalRefXml.readTerminalRef(sc.getTerminal().getVoltageLevel().getSubstation().getNetwork(), id, side)));
+            } else {
+                super.readSubElements(sc, context);
+            }
+        });
     }
 }

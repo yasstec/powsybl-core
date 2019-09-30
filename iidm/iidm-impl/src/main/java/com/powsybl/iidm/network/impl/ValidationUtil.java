@@ -49,18 +49,28 @@ public final class ValidationUtil {
         }
     }
 
-    static void checkVoltageControl(Validable validable, Boolean voltageRegulatorOn, double voltageSetpoint, double reactivePowerSetpoint) {
+    static void checkTargetDeadband(Validable validable, double targetDeadband) {
+        if (!Double.isNaN(targetDeadband) && targetDeadband < 0) {
+            throw new ValidationException(validable, "Unexpected value for target deadband: " + targetDeadband);
+        }
+    }
+
+    static boolean checkVoltageControl(Validable validable, Boolean voltageRegulatorOn, double voltageSetpoint) {
         if (voltageRegulatorOn == null) {
             throw new ValidationException(validable, "voltage regulator status is not set");
         }
-        if (voltageRegulatorOn) {
+        if (Boolean.TRUE.equals(voltageRegulatorOn)) {
             if (Double.isNaN(voltageSetpoint) || voltageSetpoint <= 0) {
                 throw createInvalidValueException(validable, voltageSetpoint, "voltage setpoint", "voltage regulator is on");
             }
-        } else {
-            if (Double.isNaN(reactivePowerSetpoint)) {
-                throw createInvalidValueException(validable, reactivePowerSetpoint, "reactive power setpoint", "voltage regulator is off");
-            }
+            return false;
+        }
+        return true;
+    }
+
+    static void checkVoltageControl(Validable validable, Boolean voltageRegulatorOn, double voltageSetpoint, double reactivePowerSetpoint) {
+        if (checkVoltageControl(validable, voltageRegulatorOn, voltageSetpoint) && Double.isNaN(reactivePowerSetpoint)) {
+            throw createInvalidValueException(validable, reactivePowerSetpoint, "reactive power setpoint", "voltage regulator is off");
         }
     }
 

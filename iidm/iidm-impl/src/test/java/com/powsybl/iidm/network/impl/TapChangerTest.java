@@ -195,7 +195,7 @@ public class TapChangerTest {
     @Test
     public void invalidTargetDeadbandPtc() {
         thrown.expect(ValidationException.class);
-        thrown.expectMessage("2 windings transformer 'twt': Unexpected value for target deadband of phase tap changer: -1.0");
+        thrown.expectMessage("2 windings transformer 'twt': Unexpected value for target deadband: -1.0");
         createPhaseTapChangerWith2Steps(1, 0, false,
                 PhaseTapChanger.RegulationMode.FIXED_TAP, 1.0, -1.0, terminal);
     }
@@ -465,7 +465,7 @@ public class TapChangerTest {
     @Test
     public void invalidTargetDeadbandRtc() {
         thrown.expect(ValidationException.class);
-        thrown.expectMessage("2 windings transformer 'twt': Unexpected value for target deadband of ratio tap changer: -1.0");
+        thrown.expectMessage("2 windings transformer 'twt': Unexpected value for target deadband: -1.0");
         createRatioTapChangerWith3Steps(0, 1, true, true, 10.0, -1.0, terminal);
     }
 
