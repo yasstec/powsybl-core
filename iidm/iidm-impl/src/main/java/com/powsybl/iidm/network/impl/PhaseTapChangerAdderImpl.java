@@ -32,7 +32,7 @@ class PhaseTapChangerAdderImpl implements PhaseTapChangerAdder {
 
     private boolean regulating = false;
 
-    private double targetDeadband = Double.NaN;
+    private double targetDeadband = 0;
 
     private TerminalExt regulationTerminal;
 
@@ -185,7 +185,7 @@ class PhaseTapChangerAdderImpl implements PhaseTapChangerAdder {
         ValidationUtil.checkPhaseTapChangerRegulation(transformer, regulationMode, regulationValue, regulating, regulationTerminal, getNetwork());
         ValidationUtil.checkTargetDeadband(transformer, targetDeadband);
         PhaseTapChangerImpl tapChanger
-                = new PhaseTapChangerImpl(transformer, lowTapPosition, steps, regulationTerminal, tapPosition, regulating, regulationMode, regulationValue, Double.isNaN(targetDeadband) ? 0 : targetDeadband);
+                = new PhaseTapChangerImpl(transformer, lowTapPosition, steps, regulationTerminal, tapPosition, regulating, regulationMode, regulationValue, targetDeadband);
         transformer.setPhaseTapChanger(tapChanger);
         return tapChanger;
     }

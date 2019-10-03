@@ -145,12 +145,11 @@ abstract class AbstractTapChanger<H extends TapChangerParent, C extends Abstract
     }
 
     public C setTargetDeadband(double targetDeadband) {
-        double realTargetDeadband = Double.isNaN(targetDeadband) ? 0 : targetDeadband;
+        ValidationUtil.checkTargetDeadband(parent, targetDeadband);
         int variantIndex = network.get().getVariantIndex();
-        ValidationUtil.checkTargetDeadband(parent, realTargetDeadband);
-        double oldValue = this.targetDeadband.set(variantIndex, realTargetDeadband);
+        double oldValue = this.targetDeadband.set(variantIndex, targetDeadband);
         String variantId = network.get().getVariantManager().getVariantId(variantIndex);
-        parent.getNetwork().getListeners().notifyUpdate(parent.getTransformer(), () -> getTapChangerAttribute() + ".targetDeadband", variantId, oldValue, realTargetDeadband);
+        parent.getNetwork().getListeners().notifyUpdate(parent.getTransformer(), () -> getTapChangerAttribute() + ".targetDeadband", variantId, oldValue, targetDeadband);
         return (C) this;
     }
 

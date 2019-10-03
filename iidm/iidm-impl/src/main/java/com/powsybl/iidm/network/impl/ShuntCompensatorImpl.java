@@ -181,12 +181,11 @@ class ShuntCompensatorImpl extends AbstractConnectable<ShuntCompensator> impleme
 
     @Override
     public ShuntCompensatorImpl setTargetDeadband(double targetDeadband) {
-        double realTargetDeadband = Double.isNaN(targetDeadband) ? 0 : targetDeadband;
-        ValidationUtil.checkTargetDeadband(this, realTargetDeadband);
+        ValidationUtil.checkTargetDeadband(this, targetDeadband);
         int variantIndex = network.get().getVariantIndex();
-        double oldValue = this.targetDeadband.set(variantIndex, realTargetDeadband);
+        double oldValue = this.targetDeadband.set(variantIndex, targetDeadband);
         String variantId = network.get().getVariantManager().getVariantId(variantIndex);
-        notifyUpdate("targetDeadband", variantId, oldValue, realTargetDeadband);
+        notifyUpdate("targetDeadband", variantId, oldValue, targetDeadband);
         return this;
     }
 

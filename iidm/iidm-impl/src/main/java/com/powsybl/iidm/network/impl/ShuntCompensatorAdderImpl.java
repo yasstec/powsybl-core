@@ -100,7 +100,7 @@ class ShuntCompensatorAdderImpl extends AbstractInjectionAdder<ShuntCompensatorA
                 = new ShuntCompensatorImpl(getNetwork().getRef(),
                 id, getName(), bPerSection, maximumSectionCount,
                 currentSectionCount, regulatingTerminal == null ? terminal : regulatingTerminal,
-                regulating, targetV, Double.isNaN(targetDeadband) ? 0 : targetDeadband);
+                regulating, targetV, targetDeadband);
         shunt.addTerminal(terminal);
         voltageLevel.attach(terminal, false);
         getNetwork().getIndex().checkAndAdd(shunt);

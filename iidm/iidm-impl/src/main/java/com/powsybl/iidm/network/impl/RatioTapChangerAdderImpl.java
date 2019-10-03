@@ -32,7 +32,7 @@ class RatioTapChangerAdderImpl implements RatioTapChangerAdder {
 
     private double targetV = Double.NaN;
 
-    private double targetDeadband = Double.NaN;
+    private double targetDeadband = 0;
 
     private TerminalExt regulationTerminal;
 
@@ -175,7 +175,7 @@ class RatioTapChangerAdderImpl implements RatioTapChangerAdder {
         ValidationUtil.checkTargetDeadband(parent, targetDeadband);
         RatioTapChangerImpl tapChanger
                 = new RatioTapChangerImpl(parent, lowTapPosition, steps, regulationTerminal, loadTapChangingCapabilities,
-                                          tapPosition, regulating, targetV, Double.isNaN(targetDeadband) ? 0 : targetDeadband);
+                                          tapPosition, regulating, targetV, targetDeadband);
         parent.setRatioTapChanger(tapChanger);
         return tapChanger;
     }

@@ -50,8 +50,11 @@ public final class ValidationUtil {
     }
 
     static void checkTargetDeadband(Validable validable, double targetDeadband) {
-        if (!Double.isNaN(targetDeadband) && targetDeadband < 0) {
-            throw new ValidationException(validable, "Unexpected value for target deadband: " + targetDeadband);
+        if (Double.isNaN(targetDeadband)) {
+            throw new ValidationException(validable, "Undefined value for target deadband");
+        }
+        if (targetDeadband < 0) {
+            throw new ValidationException(validable, "Unexpected value for target deadband: " + targetDeadband + " < 0");
         }
     }
 
@@ -59,7 +62,7 @@ public final class ValidationUtil {
         if (voltageRegulatorOn == null) {
             throw new ValidationException(validable, "voltage regulator status is not set");
         }
-        if (Boolean.TRUE.equals(voltageRegulatorOn)) {
+        if (voltageRegulatorOn) {
             if (Double.isNaN(voltageSetpoint) || voltageSetpoint <= 0) {
                 throw createInvalidValueException(validable, voltageSetpoint, "voltage setpoint", "voltage regulator is on");
             }

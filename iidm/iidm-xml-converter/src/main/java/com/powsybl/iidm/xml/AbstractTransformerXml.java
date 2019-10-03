@@ -65,7 +65,7 @@ abstract class AbstractTransformerXml<T extends Connectable, A extends Identifia
     protected static void readRatioTapChanger(String elementName, RatioTapChangerAdder adder, Terminal terminal, NetworkXmlReaderContext context) throws XMLStreamException {
         int lowTapPosition = XmlUtil.readIntAttribute(context.getReader(), ATTR_LOW_TAP_POSITION);
         int tapPosition = XmlUtil.readIntAttribute(context.getReader(), ATTR_TAP_POSITION);
-        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), TARGET_DEADBAND);
+        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), TARGET_DEADBAND, 0);
         boolean regulating = XmlUtil.readOptionalBoolAttribute(context.getReader(), ATTR_REGULATING, false);
         boolean loadTapChangingCapabilities = XmlUtil.readBoolAttribute(context.getReader(), "loadTapChangingCapabilities");
         double targetV = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetV");
@@ -147,7 +147,7 @@ abstract class AbstractTransformerXml<T extends Connectable, A extends Identifia
     protected static void readPhaseTapChanger(TwoWindingsTransformer twt, NetworkXmlReaderContext context) throws XMLStreamException {
         int lowTapPosition = XmlUtil.readIntAttribute(context.getReader(), ATTR_LOW_TAP_POSITION);
         int tapPosition = XmlUtil.readIntAttribute(context.getReader(), ATTR_TAP_POSITION);
-        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), TARGET_DEADBAND);
+        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), TARGET_DEADBAND, 0);
         PhaseTapChanger.RegulationMode regulationMode = PhaseTapChanger.RegulationMode.valueOf(context.getReader().getAttributeValue(null, "regulationMode"));
         double regulationValue = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "regulationValue");
         boolean regulating = XmlUtil.readOptionalBoolAttribute(context.getReader(), ATTR_REGULATING, false);

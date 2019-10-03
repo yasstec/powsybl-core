@@ -266,7 +266,7 @@
                 <xs:attribute name="bPerSection" use="required" type="xs:double"/>
                 <xs:attribute name="maximumSectionCount" use="required" type="xs:int"/>
                 <xs:attribute name="currentSectionCount" use="required" type="xs:int"/>
-                <xs:attribute name="regulating" use="optional" type="xs:boolean"/>
+                <xs:attribute name="regulating" use="required" type="xs:boolean"/>
                 <xs:attribute name="targetV" use="optional" type="xs:double"/>
                 <xs:attribute name="targetDeadband" use="optional" type="xs:double"/>
             </xs:extension>

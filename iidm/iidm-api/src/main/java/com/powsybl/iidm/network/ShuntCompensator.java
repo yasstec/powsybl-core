@@ -133,8 +133,7 @@ public interface ShuntCompensator extends Injection<ShuntCompensator> {
     }
 
     /**
-     * Get the shunt compensator's deadband (in kV) used to avoid excessive update of discrete control while regulating if it exists.
-     * Else returns NaN.
+     * Get the shunt compensator's deadband (in kV) used to avoid excessive update of discrete control while regulating. By default, its value is 0.
      * <p>
      * Depends on the working variant.
      * @see VariantManager
@@ -144,7 +143,7 @@ public interface ShuntCompensator extends Injection<ShuntCompensator> {
     }
 
     /**
-     * Set the shunt compensator's deadband (in kV) used to avoid excessive update of discrete control while regulating.
+     * Set the shunt compensator's deadband (in kV) used to avoid excessive update of discrete control while regulating. It must be positive.
      * <p>
      * Depends on the working variant.
      * @see VariantManager

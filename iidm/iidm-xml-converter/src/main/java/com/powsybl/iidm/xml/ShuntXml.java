@@ -30,7 +30,7 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
 
     @Override
     protected boolean hasSubElements(ShuntCompensator sc) {
-        return true;
+        return sc.getRegulatingTerminal() != sc.getTerminal();
     }
 
     @Override
@@ -38,7 +38,7 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
         XmlUtil.writeDouble("bPerSection", sc.getbPerSection(), context.getWriter());
         context.getWriter().writeAttribute("maximumSectionCount", Integer.toString(sc.getMaximumSectionCount()));
         context.getWriter().writeAttribute("currentSectionCount", Integer.toString(sc.getCurrentSectionCount()));
-        XmlUtil.writeOptionalBoolean("regulating", sc.isRegulating(), false, context.getWriter());
+        context.getWriter().writeAttribute("regulating", Boolean.toString(sc.isRegulating()));
         XmlUtil.writeDouble("targetV", sc.getTargetV(), context.getWriter());
         XmlUtil.writeOptionalDouble("targetDeadband", sc.getTargetDeadband(), 0, context.getWriter());
         writeNodeOrBus(null, sc.getTerminal(), context);
@@ -47,7 +47,7 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
 
     @Override
     protected void writeSubElements(ShuntCompensator sc, VoltageLevel vl, NetworkXmlWriterContext context) throws XMLStreamException {
-        if (sc.getRegulatingTerminal().getConnectable() != sc) {
+        if (sc.getRegulatingTerminal() != sc.getTerminal()) {
             TerminalRefXml.writeTerminalRef(sc.getRegulatingTerminal(), context, "regulatingTerminal");
         }
     }
@@ -62,9 +62,9 @@ class ShuntXml extends AbstractConnectableXml<ShuntCompensator, ShuntCompensator
         double bPerSection = XmlUtil.readDoubleAttribute(context.getReader(), "bPerSection");
         int maximumSectionCount = XmlUtil.readIntAttribute(context.getReader(), "maximumSectionCount");
         int currentSectionCount = XmlUtil.readIntAttribute(context.getReader(), "currentSectionCount");
-        boolean regulating = XmlUtil.readOptionalBoolAttribute(context.getReader(), "regulating", false);
+        boolean regulating = XmlUtil.readBoolAttribute(context.getReader(), "regulating");
         double targetV = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetV");
-        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetDeadband");
+        double targetDeadband = XmlUtil.readOptionalDoubleAttribute(context.getReader(), "targetDeadband", 0);
         adder.setbPerSection(bPerSection)
                 .setMaximumSectionCount(maximumSectionCount)
                 .setCurrentSectionCount(currentSectionCount)
