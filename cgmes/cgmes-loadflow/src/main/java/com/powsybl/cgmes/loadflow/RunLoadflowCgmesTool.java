@@ -284,6 +284,10 @@ public class RunLoadflowCgmesTool implements Tool {
     private void writeAngleTension(CgmesModelExtension cgmesModelExtension, Writer writer) throws IOException {
         int counter = 0;
         for (PropertyBag p : cgmesModelExtension.getCgmesModel().topologicalNodes()) {
+            System.out.print(cgmesModelExtension);
+            System.out.print(cgmesModelExtension.getConversion());
+            System.out.print(cgmesModelExtension.getConversion().getContext());
+            System.out.print(cgmesModelExtension.getConversion().getContext().terminalMapping());
             Terminal t = cgmesModelExtension.getConversion().getContext().terminalMapping().findFromTopologicalNode(p.getId("TopologicalNode"));
             if (t != null) {
                 Bus bus = t.getBusBreakerView().getConnectableBus();

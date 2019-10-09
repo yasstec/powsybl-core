@@ -83,7 +83,7 @@ public class Conversion {
         }
         Network network = createNetwork();
         // JAM TODO This flag, useExtendedCgmesConversion, should be removed
-        Context context = createContext(network, useExtendedCgmesConversion);
+        createContext(network, useExtendedCgmesConversion);
         assignNetworkProperties(context);
 
         Function<PropertyBag, AbstractObjectConversion> convf;
@@ -196,16 +196,15 @@ public class Conversion {
         return network;
     }
 
-    private Context createContext(Network network, boolean useExtendedCgmesConversion) {
+    private void createContext(Network network, boolean useExtendedCgmesConversion) {
         profiling.start();
-        Context context = new Context(cgmes, config, network, useExtendedCgmesConversion);
+        context = new Context(cgmes, config, network, useExtendedCgmesConversion);
         context.substationIdMapping().build();
         context.dc().initialize();
         context.loadRatioTapChangerTables();
         context.loadPhaseTapChangerTables();
         context.loadReactiveCapabilityCurveData();
         profiling.end("createContext");
-        return context;
     }
 
     private void assignNetworkProperties(Context context) {
