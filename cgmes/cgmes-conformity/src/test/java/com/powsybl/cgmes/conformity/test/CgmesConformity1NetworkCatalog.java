@@ -627,6 +627,7 @@ public class CgmesConformity1NetworkCatalog {
             txBETR3 = sBrussels.newThreeWindingsTransformer()
                 .setId("_84ed55f4-61f5-4d9d-8755-bba7b877a246")
                 .setName("BE-TR3_1")
+                .setRatedU0(ratedU0)
                 .newLeg1()
                     .setRatedU(ratedU1)
                     .setR(r1)
@@ -641,6 +642,8 @@ public class CgmesConformity1NetworkCatalog {
                     .setRatedU(ratedU2)
                     .setR(r2 * (ratedU0 / ratedU2) * (ratedU0 / ratedU2))
                     .setX(x2 * (ratedU0 / ratedU2) * (ratedU0 / ratedU2))
+                    .setG(g2 / (ratedU0 / ratedU2) / (ratedU0 / ratedU2))
+                    .setB(b2 / (ratedU0 / ratedU2) / (ratedU0 / ratedU2))
                     .setConnectableBus(busBrussels225.getId())
                     .setBus(busBrussels225.getId())
                     .setVoltageLevel(vlBrussels225.getId())
@@ -649,6 +652,8 @@ public class CgmesConformity1NetworkCatalog {
                     .setRatedU(ratedU3)
                     .setR(r3 * (ratedU0 / ratedU3) * (ratedU0 / ratedU3))
                     .setX(x3 * (ratedU0 / ratedU3) * (ratedU0 / ratedU3))
+                    .setG(g3 / (ratedU0 / ratedU3) / (ratedU0 / ratedU3))
+                    .setB(b3 / (ratedU0 / ratedU3) / (ratedU0 / ratedU3))
                     .setConnectableBus(busBrussels21.getId())
                     .setBus(busBrussels21.getId())
                     .setVoltageLevel(vlBrussels21.getId())
@@ -998,8 +1003,9 @@ public class CgmesConformity1NetworkCatalog {
             alphas.add(-alpha);
             rhos.add(1 / rho);
         }
-        double alphaMax = alphas.stream()
-                .mapToDouble(Double::doubleValue)
+        double alphaMax = alphas.stream() // Take ratio, not rho to get max
+                //.mapToDouble(Double::doubleValue)
+                .mapToDouble(v -> -v)
                 .max()
                 .orElse(Double.NaN);
         LOG.debug("EXPECTED    alphaMax {}", alphaMax);
@@ -1012,13 +1018,15 @@ public class CgmesConformity1NetworkCatalog {
             // x for current k
             double xn;
             if (type == PhaseTapChangerType.ASYMMETRICAL) {
+                double ratioAlpha = -alpha; // Take ratio, not rho (ratio = 1.0 / rho (as complex))
                 double numer = Math.sin(theta) - Math.tan(alphaMax) * Math.cos(theta);
-                double denom = Math.sin(theta) - Math.tan(alpha) * Math.cos(theta);
+                double denom = Math.sin(theta) - Math.tan(ratioAlpha) * Math.cos(theta);
                 xn = xmin + (xmax - xmin)
-                        * Math.pow(Math.tan(alpha) / Math.tan(alphaMax) * numer / denom, 2);
+                        * Math.pow(Math.tan(ratioAlpha) / Math.tan(alphaMax) * numer / denom, 2);
             } else if (type == PhaseTapChangerType.SYMMETRICAL) {
+                double ratioAlpha = -alpha;
                 xn = xmin + (xmax - xmin)
-                        * Math.pow(Math.sin(alpha / 2) / Math.sin(alphaMax / 2), 2);
+                        * Math.pow(Math.sin(ratioAlpha / 2) / Math.sin(alphaMax / 2), 2);
             } else {
                 xn = Double.NaN;
             }

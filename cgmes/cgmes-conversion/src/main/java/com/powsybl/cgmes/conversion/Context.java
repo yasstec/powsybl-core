@@ -27,7 +27,7 @@ import com.powsybl.triplestore.api.PropertyBags;
  * @author Luma Zamarreño <zamarrenolm at aia.es>
  */
 public class Context {
-    public Context(CgmesModel cgmes, Config config, Network network) {
+    public Context(CgmesModel cgmes, Config config, Network network, boolean useExtendedCgmesConversion) {
         this.cgmes = Objects.requireNonNull(cgmes);
         this.config = Objects.requireNonNull(config);
         this.network = Objects.requireNonNull(network);
@@ -43,13 +43,25 @@ public class Context {
         boundary = new Boundary(cgmes);
         substationIdMapping = new SubstationIdMapping(this);
         terminalMapping = new TerminalMapping();
-        tapChangerTransformers = new TapChangerTransformers();
+        //tapChangerTransformers = new TapChangerTransformers();
         dcMapping = new DcMapping(this);
         currentLimitsMapping = new CurrentLimitsMapping(this);
         regulatingControlMapping = new RegulatingControlMapping(this);
         nodeMapping = new NodeMapping();
 
+        this.extendedCgmesConversion = useExtendedCgmesConversion;
+        if (this.isExtendedCgmesConversion()) {
+            tapChangerTransformers = null;
+            transformerRegulatingControlMapping = new TransformerRegulatingControlMapping();
+            generatorRegulatingControlMapping = new GeneratorRegulatingControlMapping();
+        } else {
+            tapChangerTransformers = new TapChangerTransformers();
+            transformerRegulatingControlMapping = null;
+            generatorRegulatingControlMapping = null;
+        }
+
         ratioTapChangerTables = new HashMap<>();
+        phaseTapChangerTables = new HashMap<>();
         reactiveCapabilityCurveData = new HashMap<>();
     }
 
@@ -93,6 +105,14 @@ public class Context {
 
     public NodeMapping nodeMapping() {
         return nodeMapping;
+    }
+
+    public TransformerRegulatingControlMapping transformerRegulatingControlMapping() {
+        return transformerRegulatingControlMapping;
+    }
+
+    public GeneratorRegulatingControlMapping generatorRegulatingControlMapping() {
+        return generatorRegulatingControlMapping;
     }
 
     public TapChangerTransformers tapChangerTransformers() {
@@ -155,8 +175,23 @@ public class Context {
         });
     }
 
+    public void loadPhaseTapChangerTables() {
+        PropertyBags ptcpoints = cgmes.phaseTapChangerTablesPoints();
+        if (ptcpoints == null) {
+            return;
+        }
+        ptcpoints.forEach(p -> {
+            String tableId = p.getId("PhaseTapChangerTable");
+            phaseTapChangerTables.computeIfAbsent(tableId, tid -> new PropertyBags()).add(p);
+        });
+    }
+
     public PropertyBags ratioTapChangerTable(String tableId) {
         return ratioTapChangerTables.get(tableId);
+    }
+
+    public PropertyBags phaseTapChangerTable(String tableId) {
+        return phaseTapChangerTables.get(tableId);
     }
 
     public void startLinesConversion() {
@@ -208,6 +243,14 @@ public class Context {
         LOG.warn("Missing {}. Used default value {}", what, defaultValue);
     }
 
+    public void setExtendedCgmesConversion(boolean extended) {
+        extendedCgmesConversion = extended;
+    }
+
+    public boolean isExtendedCgmesConversion() {
+        return extendedCgmesConversion;
+    }
+
     private final CgmesModel cgmes;
     private final Network network;
     private final Config config;
@@ -221,12 +264,16 @@ public class Context {
     private final DcMapping dcMapping;
     private final CurrentLimitsMapping currentLimitsMapping;
     private final RegulatingControlMapping regulatingControlMapping;
+    private final TransformerRegulatingControlMapping transformerRegulatingControlMapping;
+    private final GeneratorRegulatingControlMapping generatorRegulatingControlMapping;
 
     private final Map<String, PropertyBags> ratioTapChangerTables;
+    private final Map<String, PropertyBags> phaseTapChangerTables;
     private final Map<String, PropertyBags> reactiveCapabilityCurveData;
 
     private int countLines;
     private int countLinesWithSvPowerFlowsAtEnds;
 
+    private boolean extendedCgmesConversion;
     private static final Logger LOG = LoggerFactory.getLogger(Context.class);
 }

@@ -103,7 +103,16 @@ public class ConversionTester {
     }
 
     public void testConversion(Network expected, TestGridModel gm) throws IOException {
+        Conversion.activateExtendedCgmesConversion();
         testConversion(expected, gm, this.networkComparison);
+        Network nfull = lastConvertedNetwork();
+        Conversion.deactivateExtendedCgmesConversion();
+        testConversion(expected, gm, this.networkComparison);
+        Network nold = lastConvertedNetwork();
+        if (nold == null && nfull == null) {
+            return;
+        }
+        new Comparison(nold, nfull, this.networkComparison).compare();
     }
 
     public void testConversion(Network expected, TestGridModel gm, ComparisonConfig config)
@@ -238,7 +247,8 @@ public class ConversionTester {
         LoadFlowResultsCompletionParameters p = new LoadFlowResultsCompletionParameters(
                 LoadFlowResultsCompletionParameters.EPSILON_X_DEFAULT,
                 LoadFlowResultsCompletionParameters.APPLY_REACTANCE_CORRECTION_DEFAULT,
-                LoadFlowResultsCompletionParameters.Z0_THRESHOLD_DIFF_VOLTAGE_ANGLE);
+                LoadFlowResultsCompletionParameters.Z0_THRESHOLD_DIFF_VOLTAGE_ANGLE,
+                LoadFlowResultsCompletionParameters.STRUCTURAL_RATIO_LINE_ON);
         LoadFlowResultsCompletion lf = new LoadFlowResultsCompletion(p, lfparams);
         try {
             lf.run(network, null);
