@@ -867,6 +867,7 @@ public class RemoteAppStorage implements AppStorage {
                 .resolveTemplate(NODE_ID, nodeId)
                 .resolveTemplate(VERSION, version)
                 .request()
+                .header("Connection", "close")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .post(Entity.json(timeSeriesNames));
         try {
@@ -908,6 +909,7 @@ public class RemoteAppStorage implements AppStorage {
                 .resolveTemplate(NODE_ID, nodeId)
                 .resolveTemplate(VERSION, version)
                 .request()
+                .header("Connection", "close")
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .post(Entity.json(timeSeriesNames));
         try {
