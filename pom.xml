@@ -134,7 +134,7 @@
         <graphvizjava.version>0.8.4</graphvizjava.version>
         <groovy.version>2.5.8</groovy.version>
         <guava.version>20.0</guava.version>
-        <jackson.version>2.8.11.3</jackson.version>
+        <jackson.version>2.9.10.1</jackson.version>
         <jackson.jaxrs.version>2.8.11</jackson.jaxrs.version>
         <jama.version>1.0.3</jama.version>
         <javaeeapi.version>7.0</javaeeapi.version>
